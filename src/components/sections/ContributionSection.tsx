@@ -6,7 +6,7 @@ export const ContributionSection: React.FC = () => {
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-4 mb-8">
         <div className="w-14 h-14 rounded-xl bg-[#F5F0EB] flex items-center justify-center shrink-0">
-          <img src="/src/assets/icons/iconoir_donate.svg" alt="Donate" className="w-8 h-8" />
+          <img src="/assets/icons/iconoir_donate.svg" alt="Donate" className="w-8 h-8" />
         </div>
         <div>
           <h3 className="text-xl font-bold text-[#A77E50]">Donasi Pakaian</h3>
@@ -33,7 +33,7 @@ export const ContributionSection: React.FC = () => {
           <span className="text-sm text-brand-dark/60">pcs<br/>Siap disalurkan</span>
         </div>
         <div className="w-12 h-12 bg-[#C99547] rounded-full flex items-center justify-center shrink-0">
-          <img src="/src/assets/icons/solar_box-bold.svg" alt="Box" className="w-6 h-6 brightness-0 invert" />
+          <img src="/assets/icons/solar_box-bold.svg" alt="Box" className="w-6 h-6 brightness-0 invert" />
         </div>
       </div>
 
@@ -49,7 +49,7 @@ export const ContributionSection: React.FC = () => {
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-4 mb-8">
         <div className="w-14 h-14 rounded-xl bg-[#F5F0EB] flex items-center justify-center shrink-0">
-          <img src="/src/assets/icons/tabler_recycle.svg" alt="Recycle" className="w-8 h-8" />
+          <img src="/assets/icons/tabler_recycle.svg" alt="Recycle" className="w-8 h-8" />
         </div>
         <div>
           <h3 className="text-xl font-bold text-brand-dark">IJOL Fiber – Daur Ulang</h3>
@@ -76,7 +76,7 @@ export const ContributionSection: React.FC = () => {
           <span className="text-sm text-brand-dark/60">kg tekstil<br/>Siap diproses</span>
         </div>
         <div className="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center shrink-0">
-          <img src="/src/assets/icons/mynaui_copy-solid.svg" alt="Copy" className="w-6 h-6 brightness-0 invert" />
+          <img src="/assets/icons/mynaui_copy-solid.svg" alt="Copy" className="w-6 h-6 brightness-0 invert" />
         </div>
       </div>
 

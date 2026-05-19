@@ -5,18 +5,18 @@ export const HeroSection: React.FC = () => {
   return (
     <section
       className="relative min-h-[80vh] flex flex-col pt-36 md:pt-44 lg:pt-52 pb-12 overflow-hidden bg-surface-light bg-[length:100%_100%] bg-center bg-no-repeat rounded-b-[3rem] md:rounded-b-[4rem]"
-      style={{ backgroundImage: `url('/src/assets/images/bg-hero.png')` }}
+      style={{ backgroundImage: `url('/assets/images/bg-hero.png')` }}
     >
       {/* Star Right image positioned on Top Right, showing more than 1/4 */}
       <img
-        src="/src/assets/images/star-right.png"
+        src="/assets/images/star-right.png"
         alt=""
         className="absolute top-0 right-0 translate-x-1/3 -translate-y-1/3 w-80 md:w-2xl lg:w-300 pointer-events-none z-0"
       />
 
       {/* Star Left image positioned on Bottom Left, showing more than 1/4 */}
       <img
-        src="/src/assets/images/star-left.png"
+        src="/assets/images/star-left.png"
         alt=""
         className="absolute bottom-0 left-0 -translate-x-1/3 translate-y-1/3 w-80 md:w-xl lg:w-200 pointer-events-none z-0"
       />
@@ -24,7 +24,7 @@ export const HeroSection: React.FC = () => {
       {/* Background Decorative Circle */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-200 pointer-events-none">
         <img
-          src="/src/assets/images/main.circle.svg"
+          src="/assets/images/main.circle.svg"
           alt=""
           className="w-full h-auto opacity-70 animate-spin-slow"
         />
@@ -61,7 +61,7 @@ export const HeroSection: React.FC = () => {
           className="w-full max-w-3xl relative z-20"
         >
           <img
-            src="/src/assets/images/main.ilustraton.svg"
+            src="/assets/images/main.ilustraton.svg"
             alt="Swapping clothes illustration"
             className="w-full h-auto drop-shadow-2xl"
           />

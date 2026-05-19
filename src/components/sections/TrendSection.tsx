@@ -3,12 +3,12 @@ import { motion } from 'framer-motion';
 import type { TrendItem } from '../../types';
 
 const trends: TrendItem[] = [
-  { id: '1', title: '', image: '/src/assets/images/trend.pestapora.png' },
-  { id: '2', title: '', image: '/src/assets/images/trend.syahrini.png' },
-  { id: '3', title: '', image: '/src/assets/images/trend.agustusan.png' },
-  { id: '4', title: '', image: '/src/assets/images/trend.halloween.png' },
-  { id: '5', title: '', image: '/src/assets/images/trend.christmas.png' },
-  { id: '6', title: '', image: '/src/assets/images/trend.new-year.png' },
+  { id: '1', title: '', image: '/assets/images/trend.pestapora.png' },
+  { id: '2', title: '', image: '/assets/images/trend.syahrini.png' },
+  { id: '3', title: '', image: '/assets/images/trend.agustusan.png' },
+  { id: '4', title: '', image: '/assets/images/trend.halloween.png' },
+  { id: '5', title: '', image: '/assets/images/trend.christmas.png' },
+  { id: '6', title: '', image: '/assets/images/trend.new-year.png' },
 ];
 
 export const TrendSection: React.FC = () => {
@@ -21,7 +21,7 @@ export const TrendSection: React.FC = () => {
         <div className="relative w-full flex flex-col md:flex-row items-center justify-center pt-20 md:pt-0">
           {/* Left decoration */}
           <img
-            src="/src/assets/images/trend.left.svg"
+            src="/assets/images/trend.left.svg"
             alt=""
             className="absolute left-0 top-0 md:top-1/2 md:-translate-y-1/2 w-48 lg:w-64 xl:w-88 h-auto pointer-events-none -ml-4 md:ml-0"
           />
@@ -41,7 +41,7 @@ export const TrendSection: React.FC = () => {
 
           {/* Right decoration */}
           <img
-            src="/src/assets/images/trend.right.svg"
+            src="/assets/images/trend.right.svg"
             alt=""
             className="absolute right-0 top-0 md:top-1/2 md:-translate-y-1/2 w-48 lg:w-64 xl:w-88 h-auto pointer-events-none -mr-4 md:mr-0"
           />

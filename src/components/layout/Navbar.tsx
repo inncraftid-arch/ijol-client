@@ -32,18 +32,18 @@ export const Navbar: React.FC = () => {
         {/* Logo (Center) */}
         <div className="flex-shrink-0 flex items-center justify-center">
           <a href="#">
-            <img src="/src/assets/images/logo.light.svg" alt="IJOL" className="h-4 md:h-8" />
+            <img src="/assets/images/logo.light.svg" alt="IJOL" className="h-4 md:h-8" />
           </a>
         </div>
 
         {/* Right Buttons (Desktop) */}
         <div className="hidden lg:flex items-center justify-end gap-3 flex-1">
           <button className="flex items-center gap-2 bg-[#C99547] hover:bg-[#B38036] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors">
-            <img src="/src/assets/icons/mingcute_whatsapp-fill.svg" alt="WhatsApp" className="w-[18px] h-[18px]" />
+            <img src="/assets/icons/mingcute_whatsapp-fill.svg" alt="WhatsApp" className="w-[18px] h-[18px]" />
             Hubungi Admin
           </button>
           <button className="flex items-center gap-2 bg-brand-dark hover:bg-black/90 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors">
-            <img src="/src/assets/icons/stash_plus-solid.svg" alt="Plus" className="w-[18px] h-[18px]" />
+            <img src="/assets/icons/stash_plus-solid.svg" alt="Plus" className="w-[18px] h-[18px]" />
             Upload Baju
           </button>
         </div>
@@ -64,7 +64,7 @@ export const Navbar: React.FC = () => {
           {/* Top: Logo and Close Button */}
           <div className="flex items-center justify-between mb-10">
             <a href="#">
-              <img src="/src/assets/images/logo.light.svg" alt="IJOL" className="h-4" />
+              <img src="/assets/images/logo.light.svg" alt="IJOL" className="h-4" />
             </a>
             <button
               className="text-brand-dark p-1.5 border-[1.5px] border-brand-dark rounded-full flex items-center justify-center hover:bg-brand-dark hover:text-white transition-colors"
@@ -95,11 +95,11 @@ export const Navbar: React.FC = () => {
           {/* Bottom: Action Buttons */}
           <div className="flex items-center gap-3">
             <button className="flex-1 flex justify-center items-center gap-2 bg-[#C99547] hover:bg-[#b08139] transition-colors text-white text-xs font-semibold px-1 py-2 rounded-full">
-              <img src="/src/assets/icons/mingcute_whatsapp-fill.svg" alt="WhatsApp" className="w-4 h-4" />
+              <img src="/assets/icons/mingcute_whatsapp-fill.svg" alt="WhatsApp" className="w-4 h-4" />
               Hubungi Admin
             </button>
             <button className="flex-1 flex justify-center items-center gap-1.5 bg-brand-dark hover:bg-black/90 transition-colors text-white text-xs font-semibold px-1 py-2 rounded-full">
-              <img src="/src/assets/icons/stash_plus-solid.svg" alt="Plus" className="w-4 h-4" />
+              <img src="/assets/icons/stash_plus-solid.svg" alt="Plus" className="w-4 h-4" />
               Upload Baju
             </button>
           </div>

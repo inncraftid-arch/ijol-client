@@ -20,7 +20,7 @@ export const SafetySection: React.FC = () => {
             </h2>
             <div className="group relative rounded-[2rem] overflow-hidden bg-[#CBA478] flex-1 min-h-[300px]">
               <img 
-                src="/src/assets/images/safety-left.png" 
+                src="/assets/images/safety-left.png" 
                 alt="Keamanan IJOL" 
                 className="absolute right-0 bottom-0 w-[80%] h-auto object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -55,7 +55,7 @@ export const SafetySection: React.FC = () => {
             
             <div className="group relative rounded-[2rem] overflow-hidden bg-[#EAE1D8] flex-1 min-h-[300px] flex flex-col justify-end p-8">
               <img 
-                src="/src/assets/images/safety-right.png" 
+                src="/assets/images/safety-right.png" 
                 alt="Partnership IJOL" 
                 className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] max-w-[300px] h-auto object-cover transition-transform duration-700 group-hover:scale-105"
               />

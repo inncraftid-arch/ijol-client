@@ -8,7 +8,7 @@ export const Footer: React.FC = () => {
           {/* Left: Logo */}
           <div className="shrink-0 w-full md:w-auto flex justify-center md:justify-start">
             <a href="#">
-              <img src="/src/assets/images/logo.dark.svg" alt="IJOL" className="h-8" />
+              <img src="/assets/images/logo.dark.svg" alt="IJOL" className="h-8" />
             </a>
           </div>
 
@@ -16,15 +16,15 @@ export const Footer: React.FC = () => {
           <div className="flex items-center justify-center gap-6">
             {/* Instagram */}
             <a href="#" className="hover:opacity-80 transition-opacity">
-              <img src="/src/assets/icons/ri_instagram-fill.svg" alt="Instagram" className="w-7 h-7" />
+              <img src="/assets/icons/ri_instagram-fill.svg" alt="Instagram" className="w-7 h-7" />
             </a>
             {/* LinkedIn */}
             <a href="#" className="hover:opacity-80 transition-opacity">
-              <img src="/src/assets/icons/mdi_linkedin.svg" alt="LinkedIn" className="w-7 h-7" />
+              <img src="/assets/icons/mdi_linkedin.svg" alt="LinkedIn" className="w-7 h-7" />
             </a>
             {/* Email */}
             <a href="#" className="hover:opacity-80 transition-opacity">
-              <img src="/src/assets/icons/ic_round-email.svg" alt="Email" className="w-7 h-7" />
+              <img src="/assets/icons/ic_round-email.svg" alt="Email" className="w-7 h-7" />
             </a>
           </div>
 
