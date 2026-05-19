@@ -1,0 +1,119 @@
+import React, { useState, useEffect } from 'react';
+import { Menu, X } from 'lucide-react';
+
+export const Navbar: React.FC = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const navLinks = [
+    { label: 'Koleksi Outfit', href: '#collections' },
+    { label: 'Donasi', href: '#donate' },
+    { label: 'Daur Ulang', href: '#recycle' },
+  ];
+
+  return (
+    <>
+      <header className="fixed z-50 transition-all duration-300 left-4 right-4 md:left-8 md:right-8 max-w-6xl mx-auto top-6 bg-white/95 backdrop-blur-md border border-[#EAE1D8] shadow-sm rounded-full py-2 md:py-4 px-4 md:px-4">
+      <div className="flex items-center justify-between w-full">
+        {/* Left Links (Desktop) */}
+        <nav className="hidden lg:flex items-center gap-4 flex-1 text-sm font-semibold">
+          {navLinks.map((link, index) => (
+            <React.Fragment key={link.label}>
+              <a
+                href={link.href}
+                className="text-[#A77E50] hover:text-brand-dark transition-colors"
+              >
+                {link.label}
+              </a>
+              {index < navLinks.length - 1 && <span className="w-[1px] h-4 bg-[#EAE1D8]"></span>}
+            </React.Fragment>
+          ))}
+        </nav>
+
+        {/* Logo (Center) */}
+        <div className="flex-shrink-0 flex items-center justify-center">
+          <a href="#">
+            <img src="/src/assets/images/logo.light.svg" alt="IJOL" className="h-4 md:h-8" />
+          </a>
+        </div>
+
+        {/* Right Buttons (Desktop) */}
+        <div className="hidden lg:flex items-center justify-end gap-3 flex-1">
+          <button className="flex items-center gap-2 bg-[#C99547] hover:bg-[#B38036] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors">
+            <img src="/src/assets/icons/mingcute_whatsapp-fill.svg" alt="WhatsApp" className="w-[18px] h-[18px]" />
+            Hubungi Admin
+          </button>
+          <button className="flex items-center gap-2 bg-brand-dark hover:bg-black/90 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors">
+            <img src="/src/assets/icons/stash_plus-solid.svg" alt="Plus" className="w-[18px] h-[18px]" />
+            Upload Baju
+          </button>
+        </div>
+
+        {/* Mobile Menu Toggle */}
+        <button
+          className="lg:hidden bg-brand-dark text-white p-1 rounded-full flex items-center justify-center hover:bg-black transition-colors"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X size={20} strokeWidth={3} /> : <Menu size={20} strokeWidth={3} />}
+        </button>
+      </div>
+    </header>
+
+      {/* Mobile Menu Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed top-0 left-0 right-0 z-[60] bg-white flex flex-col px-8 pt-8 pb-10 shadow-2xl rounded-b-3xl border-b border-[#EAE1D8]">
+          {/* Top: Logo and Close Button */}
+          <div className="flex items-center justify-between mb-10">
+            <a href="#">
+              <img src="/src/assets/images/logo.light.svg" alt="IJOL" className="h-4" />
+            </a>
+            <button
+              className="text-brand-dark p-1.5 border-[1.5px] border-brand-dark rounded-full flex items-center justify-center hover:bg-brand-dark hover:text-white transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <X size={20} strokeWidth={3} />
+            </button>
+          </div>
+
+          {/* Center: Navigation Links */}
+          <nav className="flex flex-col items-center gap-4 mb-6 w-full max-w-[240px] mx-auto">
+            {navLinks.map((link, index) => (
+              <React.Fragment key={link.label}>
+                <a
+                  href={link.href}
+                  className="text-[#967142] font-bold text-sm hover:text-brand-dark transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </a>
+                {index < navLinks.length - 1 && (
+                  <div className="w-full h-px bg-[#EAE1D8]"></div>
+                )}
+              </React.Fragment>
+            ))}
+          </nav>
+
+          {/* Bottom: Action Buttons */}
+          <div className="flex items-center gap-3">
+            <button className="flex-1 flex justify-center items-center gap-2 bg-[#C99547] hover:bg-[#b08139] transition-colors text-white text-xs font-semibold px-1 py-2 rounded-full">
+              <img src="/src/assets/icons/mingcute_whatsapp-fill.svg" alt="WhatsApp" className="w-4 h-4" />
+              Hubungi Admin
+            </button>
+            <button className="flex-1 flex justify-center items-center gap-1.5 bg-brand-dark hover:bg-black/90 transition-colors text-white text-xs font-semibold px-1 py-2 rounded-full">
+              <img src="/src/assets/icons/stash_plus-solid.svg" alt="Plus" className="w-4 h-4" />
+              Upload Baju
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};

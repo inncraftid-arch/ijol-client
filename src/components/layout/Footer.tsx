@@ -1,0 +1,45 @@
+import React from 'react';
+
+export const Footer: React.FC = () => {
+  return (
+    <div className='bg-white'>
+      <footer className="bg-[#4A3D30] text-white py-4 rounded-t-[2.5rem] w-full mx-auto">
+        <div className="container mx-auto px-8 md:px-12 flex flex-col md:flex-row items-center justify-between gap-8">
+          {/* Left: Logo */}
+          <div className="shrink-0 w-full md:w-auto flex justify-center md:justify-start">
+            <a href="#">
+              <img src="/src/assets/images/logo.dark.svg" alt="IJOL" className="h-8" />
+            </a>
+          </div>
+
+          {/* Center: Social Links */}
+          <div className="flex items-center justify-center gap-6">
+            {/* Instagram */}
+            <a href="#" className="hover:opacity-80 transition-opacity">
+              <img src="/src/assets/icons/ri_instagram-fill.svg" alt="Instagram" className="w-7 h-7" />
+            </a>
+            {/* LinkedIn */}
+            <a href="#" className="hover:opacity-80 transition-opacity">
+              <img src="/src/assets/icons/mdi_linkedin.svg" alt="LinkedIn" className="w-7 h-7" />
+            </a>
+            {/* Email */}
+            <a href="#" className="hover:opacity-80 transition-opacity">
+              <img src="/src/assets/icons/ic_round-email.svg" alt="Email" className="w-7 h-7" />
+            </a>
+          </div>
+
+          {/* Right: Policy Links */}
+          <div className="flex items-center justify-center md:justify-end gap-4 text-sm font-semibold w-full md:w-auto">
+            <a href="#" className="hover:text-brand-gold transition-colors">
+              Kebijakan Refund
+            </a>
+            <span className="text-white">|</span>
+            <a href="#" className="hover:text-brand-gold transition-colors">
+              Syarat dan Ketentuan
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};

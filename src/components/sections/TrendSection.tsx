@@ -1,0 +1,85 @@
+import React, { useRef } from 'react';
+import { motion } from 'framer-motion';
+import type { TrendItem } from '../../types';
+
+const trends: TrendItem[] = [
+  { id: '1', title: '', image: '/src/assets/images/trend.pestapora.png' },
+  { id: '2', title: '', image: '/src/assets/images/trend.syahrini.png' },
+  { id: '3', title: '', image: '/src/assets/images/trend.agustusan.png' },
+  { id: '4', title: '', image: '/src/assets/images/trend.halloween.png' },
+  { id: '5', title: '', image: '/src/assets/images/trend.christmas.png' },
+  { id: '6', title: '', image: '/src/assets/images/trend.new-year.png' },
+];
+
+export const TrendSection: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <section ref={containerRef} className="py-5 md:py-12 xl:py-20 overflow-hidden bg-white">
+      <div className="container mx-auto px-4 md:px-8 max-w-[1440px] mb-12 flex flex-col items-center">
+        {/* Decorative Heading */}
+        <div className="relative w-full flex flex-col md:flex-row items-center justify-center pt-20 md:pt-0">
+          {/* Left decoration */}
+          <img
+            src="/src/assets/images/trend.left.svg"
+            alt=""
+            className="absolute left-0 top-0 md:top-1/2 md:-translate-y-1/2 w-48 lg:w-64 xl:w-88 h-auto pointer-events-none -ml-4 md:ml-0"
+          />
+          
+          <div className="flex flex-col items-center text-center px-2 z-10">
+            <h2 className="text-2xl lg:text-3xl xl:text-5xl text-brand-dark font-serif leading-snug whitespace-nowrap">
+              Rekomendasi Berdasarkan Trend
+            </h2>
+            <p className="text-brand-dark/60 mt-2 text-sm lg:text-lg ">
+              Kamu cari pakaian unik untuk acara tertentu?
+              <br className="block text-sm lg:text-lg" />
+              Lihat pilihan yang bisa kamu tukar di bawah ini.
+              <br />
+              <span className="opacity-50 mt-1 block">- Segera Hadir -</span>
+            </p>
+          </div>
+
+          {/* Right decoration */}
+          <img
+            src="/src/assets/images/trend.right.svg"
+            alt=""
+            className="absolute right-0 top-0 md:top-1/2 md:-translate-y-1/2 w-48 lg:w-64 xl:w-88 h-auto pointer-events-none -mr-4 md:mr-0"
+          />
+        </div>
+      </div>
+
+      {/* Horizontal Scroll Container */}
+      <div className="w-full overflow-x-auto pb-8 hide-scrollbar">
+        <div className="flex gap-4 px-4 md:px-8 max-w-[1440px] mx-auto min-w-max">
+          {trends.map((trend, index) => (
+            <motion.div
+              key={trend.id}
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-100px' }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="w-48 h-64 md:w-56 md:h-72 rounded-[2rem] overflow-hidden flex-shrink-0 relative group shadow-sm hover:shadow-md transition-shadow"
+            >
+              <img
+                src={trend.image}
+                alt="Trend"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Hide scrollbar styling inline for convenience */}
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+    </section>
+  );
+};

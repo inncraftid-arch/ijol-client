@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-dark: #453421;
+  --color-brand-medium: #A77E50;
+  --color-brand-gold: #C99547;
+  --color-brand-gold-light: #FFC56D;
+  --color-surface-warm: #EAE1D8;
+  --color-surface-light: #F5F0EB;
+  --color-surface-card: #F1E0CF;
+  
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: "Abril Fatface", ui-serif, Georgia, serif;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-surface-light text-gray-800 antialiased;
+  }
+}
