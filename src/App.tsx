@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { LandingPage } from './pages/LandingPage';
 import { CollectionsPage } from './pages/CollectionsPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
+import { AdminItemsPage } from './pages/AdminItemsPage';
 import { ScrollToTop } from './components/routing/ScrollToTop';
 
 function App() {
@@ -10,7 +12,8 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/collections" element={<CollectionsPage />} />
-        {/* Future routes: <Route path="/login" element={<LoginPage />} /> */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin/items" element={<AdminItemsPage />} />
       </Routes>
     </BrowserRouter>
   );

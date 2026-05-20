@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
+import { contactEmailUrl } from '../../config/contact';
 
 type Feature = {
   text: React.ReactNode;
@@ -18,6 +19,7 @@ type PricingPlan = {
   buttonVariant: 'outline' | 'solid';
   buttonTextColor?: string;
   buttonBorderColor?: string;
+  buttonHref?: string;
 };
 
 const plans: PricingPlan[] = [
@@ -68,6 +70,7 @@ const plans: PricingPlan[] = [
     buttonVariant: 'outline',
     buttonTextColor: 'text-[#C99547]',
     buttonBorderColor: 'border-[#C99547]',
+    buttonHref: contactEmailUrl,
   },
   {
     id: 'octa',
@@ -84,6 +87,7 @@ const plans: PricingPlan[] = [
     ],
     buttonText: 'Contact Now',
     buttonVariant: 'solid',
+    buttonHref: contactEmailUrl,
   },
 ];
 
@@ -98,6 +102,13 @@ const CrossIcon = () => (
     <path d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5" stroke="#453421" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
+
+const getPlanButtonClassName = (plan: PricingPlan) =>
+  `block w-full rounded-full py-3 text-center text-sm font-bold transition-colors md:py-4 md:text-base ${
+    plan.buttonVariant === 'solid'
+      ? 'bg-[#453421] text-white hover:bg-black/90'
+      : `bg-transparent border ${plan.buttonBorderColor} ${plan.buttonTextColor} hover:bg-black/5`
+  }`;
 
 export const PricingSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -126,7 +137,7 @@ export const PricingSection: React.FC = () => {
       </div>
 
       {/* Horizontal Scroll Container */}
-      <div className="w-full overflow-x-auto pb-8 hide-scrollbar">
+      <div className="mt-8 md:mt-12 w-full overflow-x-auto pb-8 hide-scrollbar">
         <div className="flex items-start gap-4 md:gap-6 px-4 md:px-8 max-w-[1440px] mx-auto min-w-max">
           {plans.map((plan, index) => (
             <motion.div
@@ -173,15 +184,15 @@ export const PricingSection: React.FC = () => {
                   ))}
                 </ul>
 
-                <button 
-                  className={`w-full py-3 md:py-4 rounded-full font-bold text-sm md:text-base transition-colors ${
-                    plan.buttonVariant === 'solid' 
-                      ? 'bg-[#453421] text-white hover:bg-black/90' 
-                      : `bg-transparent border ${plan.buttonBorderColor} ${plan.buttonTextColor} hover:bg-black/5`
-                  }`}
-                >
-                  {plan.buttonText}
-                </button>
+                {plan.buttonHref ? (
+                  <a href={plan.buttonHref} className={getPlanButtonClassName(plan)}>
+                    {plan.buttonText}
+                  </a>
+                ) : (
+                  <button type="button" className={getPlanButtonClassName(plan)}>
+                    {plan.buttonText}
+                  </button>
+                )}
               </div>
             </motion.div>
           ))}

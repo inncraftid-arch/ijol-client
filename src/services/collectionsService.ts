@@ -104,7 +104,7 @@ export async function fetchCollections({
   search = '',
 }: FetchCollectionsParams): Promise<FetchCollectionsResult> {
   const records = await supabaseRestRequest<ProductRecord[]>(
-    `${clientEnv.itemsTable}?select=id,name,category_gender,category,is_branded,brand,size,condition,description,can_buy,buy_price,can_rent,rent_price,users!items_user_id_fkey(full_name,city),item_photos!item_photos_item_id_fkey(public_url,sort_order)&status=in.(pending_qc,approved)&order=created_at.desc&limit=300`
+    `${clientEnv.itemsTable}?select=id,name,category_gender,category,is_branded,brand,size,condition,description,can_buy,buy_price,can_rent,rent_price,users!items_user_id_fkey(full_name,city),item_photos!item_photos_item_id_fkey(public_url,sort_order)&status=eq.approved&order=created_at.desc&limit=300`
   );
   const normalizedSearch = search.trim().toLowerCase();
   const products = records.map(mapProductRecord);

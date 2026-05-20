@@ -22,7 +22,7 @@ export const CollectionCategory: React.FC<CollectionCategoryProps> = ({
 
   return (
     <div className="mb-12 md:mb-16">
-      <div className="flex items-center justify-between gap-4 mb-6 md:mb-8 pb-4 border-b border-brand-dark/10">
+      <div className="flex items-center justify-between gap-4 mb-6 md:mb-8">
         <h3 className="text-2xl md:text-3xl text-[#C99547] font-serif tracking-wide">{title}</h3>
         <Link to={href} className="shrink-0 px-4 md:px-6 py-2 rounded-full border border-brand-dark text-brand-dark font-semibold hover:bg-brand-dark hover:text-white transition-colors text-xs md:text-sm">
           Lihat Semua
@@ -43,6 +43,7 @@ export const CollectionCategory: React.FC<CollectionCategoryProps> = ({
           : products.map((product, index) => (
               <motion.div
                 key={product.id || index}
+                className="h-full"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}

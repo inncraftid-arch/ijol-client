@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { contactEmailUrl } from '../../config/contact';
 
 export const SafetySection: React.FC = () => {
   return (
@@ -51,9 +52,12 @@ export const SafetySection: React.FC = () => {
             </div>
 
             {/* Button */}
-            <button className="w-full bg-[#453421] hover:bg-black/90 text-white py-3.5 md:py-4 rounded-[1.25rem] font-bold text-sm md:text-base transition-colors">
+            <a
+              href={contactEmailUrl}
+              className="block w-full rounded-[1.25rem] bg-[#453421] py-3.5 text-center text-sm font-bold text-white transition-colors hover:bg-black/90 md:py-4 md:text-base"
+            >
               Contact Now
-            </button>
+            </a>
           </motion.div>
 
         </div>

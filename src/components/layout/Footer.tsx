@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router';
+import { contactEmailUrl } from '../../config/contact';
 
 export const Footer: React.FC = () => {
   return (
@@ -16,15 +17,25 @@ export const Footer: React.FC = () => {
           {/* Center: Social Links */}
           <div className="flex items-center justify-center gap-6">
             {/* Instagram */}
-            <a href="#" className="hover:opacity-80 transition-opacity">
+            <a
+              href="https://www.instagram.com/ijol.in?igsh=MWVoMW5remN5ZWh2Zw=="
+              target="_blank"
+              rel="noreferrer"
+              className="hover:opacity-80 transition-opacity"
+            >
               <img src="/assets/icons/ri_instagram-fill.svg" alt="Instagram" className="w-7 h-7" />
             </a>
             {/* LinkedIn */}
-            <a href="#" className="hover:opacity-80 transition-opacity">
+            <a
+              href="https://www.linkedin.com/company/ijol/"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:opacity-80 transition-opacity"
+            >
               <img src="/assets/icons/mdi_linkedin.svg" alt="LinkedIn" className="w-7 h-7" />
             </a>
             {/* Email */}
-            <a href="#" className="hover:opacity-80 transition-opacity">
+            <a href={contactEmailUrl} className="hover:opacity-80 transition-opacity">
               <img src="/assets/icons/ic_round-email.svg" alt="Email" className="w-7 h-7" />
             </a>
           </div>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Mail, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 import { UploadProductDrawerWithUserLookup as UploadProductDrawer } from '../forms/UploadProductDrawerWithUserLookup';
+import { contactEmailUrl } from '../../config/contact';
 
 const donationFormUrl = 'https://forms.gle/SUqFHTXzJGmDLxXb7';
 
@@ -72,10 +73,13 @@ export const Navbar: React.FC = () => {
 
         {/* Right Buttons (Desktop) */}
         <div className="hidden lg:flex items-center justify-end gap-3 flex-1">
-          <button className="flex items-center gap-2 bg-[#C99547] hover:bg-[#B38036] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors">
-            <img src="/assets/icons/mingcute_whatsapp-fill.svg" alt="WhatsApp" className="w-[18px] h-[18px]" />
-            Hubungi Admin
-          </button>
+          <a
+            href={contactEmailUrl}
+            className="flex items-center gap-2 rounded-full bg-[#C99547] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#B38036]"
+          >
+            <Mail className="h-[18px] w-[18px]" />
+            Hubungi Kami
+          </a>
           <button
             type="button"
             onClick={() => setIsUploadDrawerOpen(true)}
@@ -153,10 +157,14 @@ export const Navbar: React.FC = () => {
 
           {/* Bottom: Action Buttons */}
           <div className="flex items-center gap-3">
-            <button className="flex-1 flex justify-center items-center gap-2 bg-[#C99547] hover:bg-[#b08139] transition-colors text-white text-xs font-semibold px-1 py-2 rounded-full">
-              <img src="/assets/icons/mingcute_whatsapp-fill.svg" alt="WhatsApp" className="w-4 h-4" />
-              Hubungi Admin
-            </button>
+            <a
+              href={contactEmailUrl}
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#C99547] px-1 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#b08139]"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <Mail className="h-4 w-4" />
+              Hubungi Kami
+            </a>
             <button
               type="button"
               onClick={() => {
