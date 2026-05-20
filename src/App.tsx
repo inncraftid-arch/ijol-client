@@ -3,6 +3,7 @@ import { LandingPage } from './pages/LandingPage';
 import { CollectionsPage } from './pages/CollectionsPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { AdminItemsPage } from './pages/AdminItemsPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { ScrollToTop } from './components/routing/ScrollToTop';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route path="/collections" element={<CollectionsPage />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin/items" element={<AdminItemsPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
