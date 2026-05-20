@@ -7,11 +7,18 @@ export const products: Product[] = [
     label: 'UL02',
     isNonBranded: true,
     image: '/assets/images/clothes.2.png',
+    images: ['/assets/images/clothes.2.png', '/assets/images/clothes.1.png'],
+    description: 'Crop Gaudi warna kombinasi maroon dan cream, kondisi masih bagus dan sudah lama tidak dipakai.',
     sizes: ['M'],
     condition: 'Baik',
     owner: { name: 'Arin' },
     location: 'Bekasi',
-    category: 'women'
+    category: 'female',
+    canRent: true,
+    canBuy: true,
+    canSwap: true,
+    rentPrice: 'Rp25.000/hari',
+    buyPrice: 'Rp45.000'
   },
   {
     id: '2',
@@ -19,11 +26,16 @@ export const products: Product[] = [
     label: 'UL02',
     isNonBranded: true,
     image: '/assets/images/clothes.2.png',
+    images: ['/assets/images/clothes.2.png', '/assets/images/clothes.1.png', '/assets/images/clothes.2.png'],
+    description: 'Dress simpel warna pink muda, nyaman untuk dipakai harian atau acara santai.',
     sizes: ['M'],
     condition: 'Baik',
     owner: { name: 'Arin' },
     location: 'Bekasi',
-    category: 'women'
+    category: 'female',
+    canBuy: true,
+    canSwap: true,
+    buyPrice: 'Rp60.000'
   },
   {
     id: '3',
@@ -31,11 +43,16 @@ export const products: Product[] = [
     label: 'UL01',
     isNonBranded: true,
     image: '/assets/images/clothes.1.png',
+    images: ['/assets/images/clothes.1.png', '/assets/images/clothes.2.png'],
+    description: 'Atasan crop dengan detail garis maroon, cocok untuk look semi kasual.',
     sizes: ['M'],
     condition: 'Baik',
     owner: { name: 'Arin' },
     location: 'Bekasi',
-    category: 'women'
+    category: 'female',
+    canRent: true,
+    canSwap: true,
+    rentPrice: 'Rp25.000/hari'
   },
   {
     id: '4',
@@ -43,11 +60,18 @@ export const products: Product[] = [
     label: 'UL02',
     isNonBranded: true,
     image: '/assets/images/clothes.2.png',
+    images: ['/assets/images/clothes.2.png', '/assets/images/clothes.1.png'],
+    description: 'Mini dress pink muda dengan bahan ringan dan kondisi layak pakai.',
     sizes: ['M'],
     condition: 'Baik',
     owner: { name: 'Arin' },
     location: 'Bekasi',
-    category: 'women'
+    category: 'female',
+    canRent: true,
+    canBuy: true,
+    canSwap: true,
+    rentPrice: 'Rp20.000/hari',
+    buyPrice: 'Rp50.000'
   },
   {
     id: '5',
@@ -55,11 +79,14 @@ export const products: Product[] = [
     label: 'UL02',
     isNonBranded: true,
     image: '/assets/images/clothes.2.png',
+    images: ['/assets/images/clothes.2.png', '/assets/images/clothes.1.png'],
+    description: 'Pakaian non branded yang masih bersih dan siap dipakai ulang.',
     sizes: ['M'],
     condition: 'Baik',
     owner: { name: 'Arin' },
     location: 'Bekasi',
-    category: 'women'
+    category: 'female',
+    canSwap: true
   },
   {
     id: '6',
@@ -67,11 +94,18 @@ export const products: Product[] = [
     label: 'UL02',
     isNonBranded: true,
     image: '/assets/images/clothes.2.png',
+    images: ['/assets/images/clothes.2.png'],
+    description: 'Pakaian harian dengan warna lembut, cocok untuk capsule wardrobe.',
     sizes: ['M'],
     condition: 'Baik',
     owner: { name: 'Arin' },
     location: 'Bekasi',
-    category: 'women'
+    category: 'female',
+    canRent: true,
+    canBuy: true,
+    canSwap: true,
+    rentPrice: 'Rp18.000/hari',
+    buyPrice: 'Rp55.000'
   },
   // Men's category examples
   {
@@ -80,11 +114,16 @@ export const products: Product[] = [
     label: 'UL01',
     isNonBranded: true,
     image: '/assets/images/clothes.1.png',
+    images: ['/assets/images/clothes.1.png', '/assets/images/clothes.2.png'],
+    description: 'Outer crop dengan potongan unik, cocok untuk layering outfit.',
     sizes: ['M'],
     condition: 'Baik',
     owner: { name: 'Arin' },
     location: 'Bekasi',
-    category: 'men'
+    category: 'male',
+    canBuy: true,
+    canSwap: true,
+    buyPrice: 'Rp45.000'
   },
   {
     id: '8',
@@ -92,10 +131,15 @@ export const products: Product[] = [
     label: 'UL02',
     isNonBranded: true,
     image: '/assets/images/clothes.2.png',
+    images: ['/assets/images/clothes.2.png', '/assets/images/clothes.1.png'],
+    description: 'Item casual yang bisa dipakai ulang untuk berbagai kegiatan santai.',
     sizes: ['M'],
     condition: 'Baik',
     owner: { name: 'Arin' },
     location: 'Bekasi',
-    category: 'men'
+    category: 'male',
+    canRent: true,
+    canSwap: true,
+    rentPrice: 'Rp22.000/hari'
   }
 ];

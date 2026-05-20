@@ -19,9 +19,9 @@ export const LandingPage: React.FC = () => {
         <HeroSection />
 
         {/* Combined Section for Mission & How Swap Works */}
-        <section className="pt-24">
-          <div className="container mx-auto px-4 md:px-8 max-w-360">
-            <div className="grid grid-cols-1 lg:grid-cols-8 xl:grid-cols-12 gap-12 lg:gap-6 items-start">
+        <section className="pt-16 md:pt-20 lg:pt-24 bg-white">
+          <div className="container mx-auto px-4 md:px-8 max-w-[1440px]">
+            <div className="grid grid-cols-1 lg:grid-cols-8 xl:grid-cols-12 gap-8 md:gap-10 lg:gap-6 items-start">
               <div className="lg:col-span-3 xl:col-span-4 h-full">
                 <MissionSection />
               </div>

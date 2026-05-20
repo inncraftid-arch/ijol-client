@@ -103,15 +103,15 @@ export const PricingSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <section ref={containerRef} className="py-10 overflow-hidden bg-white">
-      <div className="container mx-auto px-4 md:px-8 max-w-[1440px] mb-8">
+    <section ref={containerRef} className="py-12 md:py-16 overflow-hidden bg-white">
+      <div className="container mx-auto px-4 md:px-8 max-w-[1440px]">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 w-full">
           <div>
             <h2 className="text-4xl md:text-5xl text-brand-dark font-serif mb-2 tracking-wide">
               Pricing Plans
             </h2>
-            <p className="text-brand-dark/50 text-lg md:text-xl font-medium">
+            <p className="text-brand-dark/50 text-base md:text-xl font-medium">
               Bayar jika orang lain juga tertarik dengan Swap pakaianmu
             </p>
           </div>
@@ -135,7 +135,7 @@ export const PricingSection: React.FC = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="w-[280px] md:w-[320px] flex-shrink-0 rounded-[2rem] border border-brand-dark/10 bg-white flex flex-col overflow-hidden"
+              className="w-[270px] sm:w-[300px] md:w-[320px] flex-shrink-0 rounded-[2rem] border border-brand-dark/10 bg-white flex flex-col overflow-hidden"
             >
               {/* Card Header (Colored Background) */}
               <div className="bg-[#F5F0EB]/60 p-6 pt-8 pb-10 m-2 rounded-[1.5rem] relative flex flex-col items-center justify-center min-h-[160px]">

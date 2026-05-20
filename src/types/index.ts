@@ -4,14 +4,23 @@ export interface Product {
   label: string;
   isNonBranded: boolean;
   image: string;
-  sizes: ('S' | 'M' | 'L' | 'XL')[];
+  images?: string[];
+  description?: string;
+  sizes: string[];
   condition: string;
   owner: {
     name: string;
     avatar?: string;
   };
   location: string;
-  category: 'women' | 'men';
+  category: 'female' | 'male' | 'unisex';
+  itemCategory?: string;
+  brand?: string;
+  canRent?: boolean;
+  canBuy?: boolean;
+  canSwap?: boolean;
+  rentPrice?: string;
+  buyPrice?: string;
 }
 
 export interface TrendItem {

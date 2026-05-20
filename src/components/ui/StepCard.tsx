@@ -1,14 +1,15 @@
 import React from 'react';
 import type { SwapStep } from '../../types';
 import * as Icons from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface StepCardProps {
   step: SwapStep;
 }
 
 export const StepCard: React.FC<StepCardProps> = ({ step }) => {
-  // Dynamically get the Lucide icon component
-  const IconComponent = (Icons as any)[step.icon] || Icons.Circle;
+  const iconComponents = Icons as unknown as Record<string, LucideIcon>;
+  const IconComponent = iconComponents[step.icon] || Icons.Circle;
 
   return (
     <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-surface-light transition-colors">

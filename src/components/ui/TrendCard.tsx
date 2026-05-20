@@ -1,6 +1,6 @@
 import React from 'react';
 import type { TrendItem } from '../../types';
-import { cn } from './Button';
+import { cn } from '../../lib/utils';
 
 interface TrendCardProps {
   trend: TrendItem;

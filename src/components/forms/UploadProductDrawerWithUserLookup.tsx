@@ -1,0 +1,1111 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { AlertTriangle, CheckCircle2, ImageIcon, Search, Trash2, X } from 'lucide-react';
+import { submitUploadProduct } from '../../services/uploadProductService';
+import type { UploadProductFile, UploadProductFormData } from '../../services/uploadProductService';
+import {
+  findExistingUploadUserByPhone,
+  sanitizePhoneNumberInput,
+  validatePhoneNumberInput,
+} from '../../services/usersService';
+import { uploadProductFormCopy as copy } from './uploadProductFormCopy';
+
+type ProofKind = 'Label' | 'Tag' | 'Nota';
+
+type UploadPreview = {
+  id: string;
+  name: string;
+  url: string;
+  file: File;
+  proofKind?: ProofKind;
+};
+
+type UploadProductDrawerWithUserLookupProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+};
+
+type FormValues = {
+  fullName: string;
+  whatsapp: string;
+  city: string;
+  cityOther: string;
+  itemName: string;
+  categoryGender: '' | 'male' | 'female' | 'unisex';
+  category: string;
+  categoryOther: string;
+  brandStatus: '' | 'true' | 'false';
+  brand: string;
+  size: string;
+  condition: string;
+  description: string;
+  buyPrice: string;
+  rentPrice: string;
+};
+
+type UserMode = '' | 'existing' | 'new';
+type LookupStatus = 'idle' | 'checking' | 'found' | 'not-found' | 'error';
+type ConfirmationKind = 'upload' | 'existing-user' | null;
+
+const cityOptions = [
+  'Jakarta',
+  'Bogor',
+  'Depok',
+  'Tangerang',
+  'Bekasi',
+  'Bandung',
+  'Surabaya',
+  'Yogyakarta',
+  'Bali',
+  'Lainnya',
+] as const;
+
+const genderCategoryOptions = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+  { value: 'unisex', label: 'Unisex' },
+] as const;
+
+const categoryOptions = [
+  'Atasan (kemeja, kaos, blouse, dll)',
+  'Bawahan (celana, rok, dll)',
+  'Outer (jaket, blazer, cardigan, dll)',
+  'Dress / Jumpsuit',
+  'Aksesori / Tas',
+  'Sepatu',
+  'Yang lain',
+] as const;
+
+const conditionOptions = [
+  'Baru / belum pernah dipakai (tag masih ada)',
+  'Seperti baru (1–2× pakai)',
+  'Baik (beberapa kali pakai, tidak ada cacat)',
+  'Cukup baik (ada sedikit tanda pemakaian)',
+  'Perlu diketahui (ada cacat/kekurangan, saya akan jelaskan)',
+] as const;
+
+const initialFormValues: FormValues = {
+  fullName: '',
+  whatsapp: '',
+  city: '',
+  cityOther: '',
+  itemName: '',
+  categoryGender: '',
+  category: '',
+  categoryOther: '',
+  brandStatus: '',
+  brand: '',
+  size: '',
+  condition: '',
+  description: '',
+  buyPrice: '',
+  rentPrice: '',
+};
+
+const createUploadPreviews = (files: FileList | null): UploadPreview[] => {
+  if (!files) {
+    return [];
+  }
+
+  return Array.from(files).map((file) => ({
+    id: `${file.name}-${file.lastModified}-${Math.random().toString(16).slice(2)}`,
+    name: file.name,
+    url: URL.createObjectURL(file),
+    file,
+  }));
+};
+
+const appendUploadPreviews = (
+  currentPreviews: UploadPreview[],
+  nextPreviews: UploadPreview[],
+  maxFiles = 7
+) => {
+  const mergedPreviews = [...currentPreviews, ...nextPreviews];
+  const keptPreviews = mergedPreviews.slice(0, maxFiles);
+  const droppedPreviews = mergedPreviews.slice(maxFiles);
+
+  droppedPreviews.forEach((preview) => URL.revokeObjectURL(preview.url));
+
+  return keptPreviews;
+};
+
+const formatThousands = (value: string) => {
+  const numericValue = value.replace(/\D/g, '');
+
+  if (!numericValue) {
+    return '';
+  }
+
+  return new Intl.NumberFormat('id-ID').format(Number(numericValue));
+};
+
+const formatTitleCase = (value: string) =>
+  value
+    .replace(/[^a-zA-Z\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\b[a-zA-Z]/g, (character) => character.toUpperCase())
+    .replace(/\B[A-Z]/g, (character) => character.toLowerCase())
+    .trimStart();
+
+const sanitizeItemName = (value: string) => value.replace(/[^a-zA-Z\s-]/g, '').replace(/\s+/g, ' ');
+
+const sanitizeSize = (value: string) => value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+const getUserFacingErrorMessage = (error: unknown) => {
+  if (!(error instanceof Error)) {
+    return 'Sistem error. Silakan coba lagi atau hubungi admin.';
+  }
+
+  const technicalPatterns = [
+    'row-level security',
+    'violates',
+    'JWT',
+    'Failed to fetch',
+    '42501',
+    'new row',
+    'policy',
+    'column',
+    'constraint',
+    'duplicate key',
+    'foreign key',
+    'permission denied',
+    'invalid input',
+    'Request gagal',
+  ];
+  const isTechnicalError = technicalPatterns.some((pattern) =>
+    error.message.toLowerCase().includes(pattern.toLowerCase())
+  );
+
+  return isTechnicalError ? 'Sistem error. Silakan coba lagi atau hubungi admin.' : error.message;
+};
+
+const FieldLabel: React.FC<{ label: string; helper?: string; children: React.ReactNode }> = ({
+  label,
+  helper,
+  children,
+}) => (
+  <label className="block">
+    <span className="block text-sm font-medium text-brand-dark mb-1">{label}</span>
+    {children}
+    {helper && <span className="block mt-1.5 text-xs text-brand-dark/35">{helper}</span>}
+  </label>
+);
+
+const inputClass =
+  'w-full rounded-full border border-brand-dark/15 bg-white px-5 py-3 text-sm text-brand-dark outline-none transition-colors placeholder:text-brand-dark/30 focus:border-brand-gold';
+
+const selectClass =
+  'w-full rounded-full border border-brand-dark/15 bg-white px-5 py-3 text-sm text-brand-dark outline-none transition-colors focus:border-brand-gold';
+
+const Toggle: React.FC<{ checked: boolean; onChange: (checked: boolean) => void; label: string; helper: string }> = ({
+  checked,
+  onChange,
+  label,
+  helper,
+}) => (
+  <div className="flex items-start justify-between gap-4">
+    <div>
+      <h3 className="text-base font-bold text-brand-dark">{label}</h3>
+      <p className="text-xs text-brand-dark/40 leading-relaxed">{helper}</p>
+    </div>
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${checked ? 'bg-[#C99547]' : 'bg-brand-dark/15'}`}
+      aria-pressed={checked}
+    >
+      <span
+        className={`absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
+          checked ? 'translate-x-6' : 'translate-x-0'
+        }`}
+      />
+    </button>
+  </div>
+);
+
+export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWithUserLookupProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+}) => {
+  const [formValues, setFormValues] = useState<FormValues>(initialFormValues);
+  const [userMode, setUserMode] = useState<UserMode>('');
+  const [phoneLookup, setPhoneLookup] = useState('');
+  const [lookupStatus, setLookupStatus] = useState<LookupStatus>('idle');
+  const [lookupMessage, setLookupMessage] = useState('');
+  const [isPreLoved, setIsPreLoved] = useState(false);
+  const [isRental, setIsRental] = useState(false);
+  const [selectedProofKind, setSelectedProofKind] = useState<ProofKind>('Label');
+  const [itemPhotos, setItemPhotos] = useState<UploadPreview[]>([]);
+  const [brandProofs, setBrandProofs] = useState<UploadPreview[]>([]);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [confirmationKind, setConfirmationKind] = useState<ConfirmationKind>(null);
+  const [hasConfirmedExistingUserConflict, setHasConfirmedExistingUserConflict] = useState(false);
+
+  const selectedCity = formValues.city === 'Lainnya' ? formValues.cityOther.trim() : formValues.city;
+  const selectedCategory =
+    formValues.category === 'Yang lain' ? formValues.categoryOther.trim() : formValues.category;
+  const isBranded = formValues.brandStatus === 'true';
+  const shouldShowPersonalFields = userMode === 'new' || lookupStatus === 'found';
+  const personalComplete = Boolean(
+    shouldShowPersonalFields && formValues.fullName.trim() && formValues.whatsapp.trim() && selectedCity
+  );
+  const shouldShowItemSections = personalComplete;
+  const clothingComplete = Boolean(
+    formValues.itemName.trim() &&
+      formValues.categoryGender &&
+      selectedCategory &&
+      formValues.brandStatus &&
+      (!isBranded || formValues.brand.trim()) &&
+      formValues.size.trim() &&
+      formValues.condition &&
+      formValues.description.trim()
+  );
+  const mediaComplete = itemPhotos.length >= 1;
+  const listingComplete = Boolean(
+    (!isPreLoved || formValues.buyPrice.trim()) && (!isRental || formValues.rentPrice.trim())
+  );
+  const formComplete = personalComplete && clothingComplete && mediaComplete && listingComplete;
+  const isSubmitting = submitStatus === 'submitting';
+
+  const resetLookup = () => {
+    setPhoneLookup('');
+    setLookupStatus('idle');
+    setLookupMessage('');
+  };
+
+  const clearPersonalFields = () => {
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      fullName: '',
+      whatsapp: '',
+      city: '',
+      cityOther: '',
+    }));
+  };
+
+  const getCityFields = (city: string) => {
+    if (cityOptions.includes(city as (typeof cityOptions)[number])) {
+      return { city, cityOther: '' };
+    }
+
+    return { city: 'Lainnya', cityOther: formatTitleCase(city) };
+  };
+
+  const closeDrawer = useCallback(() => {
+    itemPhotos.forEach((photo) => URL.revokeObjectURL(photo.url));
+    brandProofs.forEach((proof) => URL.revokeObjectURL(proof.url));
+    setFormValues(initialFormValues);
+    setUserMode('');
+    setPhoneLookup('');
+    setLookupStatus('idle');
+    setLookupMessage('');
+    setIsPreLoved(false);
+    setIsRental(false);
+    setSelectedProofKind('Label');
+    setItemPhotos([]);
+    setBrandProofs([]);
+    setSubmitStatus('idle');
+    setSubmitMessage('');
+    setConfirmationKind(null);
+    setHasConfirmedExistingUserConflict(false);
+    onClose();
+  }, [brandProofs, itemPhotos, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeDrawer();
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [closeDrawer, isOpen]);
+
+  if (!isOpen) {
+    return null;
+  }
+
+  const updateField = (field: keyof FormValues, value: string) => {
+    setSubmitStatus('idle');
+    setSubmitMessage('');
+    setHasConfirmedExistingUserConflict((currentValue) =>
+      field === 'whatsapp' ? false : currentValue
+    );
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      [field]:
+        field === 'whatsapp'
+          ? sanitizePhoneNumberInput(value)
+          : field === 'cityOther' || field === 'categoryOther'
+            ? formatTitleCase(value)
+            : field === 'itemName'
+              ? sanitizeItemName(value)
+              : field === 'size'
+                ? sanitizeSize(value)
+                : value,
+    }));
+  };
+
+  const updateUserMode = (nextUserMode: UserMode) => {
+    setUserMode(nextUserMode);
+    resetLookup();
+    clearPersonalFields();
+    setSubmitStatus('idle');
+    setSubmitMessage('');
+    setConfirmationKind(null);
+    setHasConfirmedExistingUserConflict(false);
+  };
+
+  const updatePhoneLookup = (value: string) => {
+    setPhoneLookup(sanitizePhoneNumberInput(value));
+    setLookupStatus('idle');
+    setLookupMessage('');
+    clearPersonalFields();
+    setHasConfirmedExistingUserConflict(false);
+  };
+
+  const handleLookupExistingUser = async () => {
+    const sanitizedPhone = sanitizePhoneNumberInput(phoneLookup);
+    const validationMessage = validatePhoneNumberInput(sanitizedPhone);
+
+    if (validationMessage) {
+      setLookupStatus('error');
+      setLookupMessage(validationMessage);
+      return;
+    }
+
+    setLookupStatus('checking');
+    setLookupMessage(copy.userMode.checking);
+    setSubmitStatus('idle');
+    setSubmitMessage('');
+
+    try {
+      const existingUser = await findExistingUploadUserByPhone(sanitizedPhone);
+
+      if (!existingUser) {
+        setLookupStatus('not-found');
+        setLookupMessage(copy.userMode.notFound);
+        clearPersonalFields();
+        return;
+      }
+
+      setFormValues((currentValues) => ({
+        ...currentValues,
+        fullName: existingUser.fullName,
+        whatsapp: existingUser.phone,
+        ...getCityFields(existingUser.city),
+      }));
+      setLookupStatus('found');
+      setLookupMessage(copy.userMode.found);
+    } catch (error) {
+      setLookupStatus('error');
+      setLookupMessage(error instanceof Error ? error.message : copy.status.error);
+    }
+  };
+
+  const addItemPhotos = (files: FileList | null) => {
+    const nextPreviews = createUploadPreviews(files);
+    setSubmitStatus('idle');
+    setSubmitMessage('');
+    setItemPhotos((currentPhotos) => appendUploadPreviews(currentPhotos, nextPreviews));
+  };
+
+  const addBrandProofs = (files: FileList | null) => {
+    const nextPreviews = createUploadPreviews(files).map((preview) => ({
+      ...preview,
+      proofKind: selectedProofKind,
+    }));
+    setSubmitStatus('idle');
+    setSubmitMessage('');
+    setBrandProofs((currentProofs) => appendUploadPreviews(currentProofs, nextPreviews));
+  };
+
+  const removeItemPhoto = (id: string) => {
+    setItemPhotos((currentPhotos) => {
+      const removedPhoto = currentPhotos.find((photo) => photo.id === id);
+      if (removedPhoto) {
+        URL.revokeObjectURL(removedPhoto.url);
+      }
+
+      return currentPhotos.filter((photo) => photo.id !== id);
+    });
+  };
+
+  const removeBrandProof = (id: string) => {
+    setBrandProofs((currentProofs) => {
+      const removedProof = currentProofs.find((proof) => proof.id === id);
+      if (removedProof) {
+        URL.revokeObjectURL(removedProof.url);
+      }
+
+      return currentProofs.filter((proof) => proof.id !== id);
+    });
+  };
+
+  const updateProofKind = (id: string, proofKind: ProofKind) => {
+    setSubmitStatus('idle');
+    setSubmitMessage('');
+    setBrandProofs((currentProofs) =>
+      currentProofs.map((proof) => (proof.id === id ? { ...proof, proofKind } : proof))
+    );
+  };
+
+  const buildUploadFiles = (previews: UploadPreview[]): UploadProductFile[] =>
+    previews.map((preview) => ({
+      file: preview.file,
+      proofKind: preview.proofKind,
+    }));
+
+  const buildSubmissionPayload = (): UploadProductFormData => ({
+    fullName: formValues.fullName.trim(),
+    whatsapp: formValues.whatsapp.trim(),
+    city: selectedCity,
+    itemName: formValues.itemName.trim(),
+    categoryGender: formValues.categoryGender as 'male' | 'female' | 'unisex',
+    category: selectedCategory,
+    isBranded,
+    brand: isBranded ? formValues.brand.trim() : undefined,
+    size: formValues.size.trim(),
+    condition: formValues.condition,
+    description: formValues.description.trim(),
+    isPreLoved,
+    buyPrice: isPreLoved ? formValues.buyPrice : undefined,
+    isRental,
+    rentPrice: isRental ? formValues.rentPrice : undefined,
+    itemPhotos: buildUploadFiles(itemPhotos),
+    brandProofs: isBranded ? buildUploadFiles(brandProofs) : [],
+  });
+
+  const performUpload = async () => {
+    if (!formComplete || isSubmitting) {
+      return;
+    }
+
+    setConfirmationKind(null);
+    setSubmitStatus('submitting');
+    setSubmitMessage(copy.status.submitting);
+
+    try {
+      await submitUploadProduct(buildSubmissionPayload());
+      setSubmitStatus('success');
+      setSubmitMessage(copy.status.success);
+      closeDrawer();
+      onSuccess?.();
+    } catch (error) {
+      setSubmitStatus('error');
+      setSubmitMessage(getUserFacingErrorMessage(error));
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!formComplete || isSubmitting) {
+      return;
+    }
+
+    setSubmitStatus('idle');
+    setSubmitMessage('');
+
+    if (userMode === 'new' && !hasConfirmedExistingUserConflict) {
+      try {
+        const existingUser = await findExistingUploadUserByPhone(formValues.whatsapp);
+
+        if (existingUser) {
+          setConfirmationKind('existing-user');
+          return;
+        }
+      } catch (error) {
+        setSubmitStatus('error');
+        setSubmitMessage(getUserFacingErrorMessage(error));
+        return;
+      }
+    }
+
+    setConfirmationKind('upload');
+  };
+
+  const renderPersonalSection = () => (
+    <section className="space-y-5">
+      <div>
+        <h2 className="text-lg font-bold text-brand-dark">{copy.sections.personal}</h2>
+        <p className="mt-1 text-xs leading-relaxed text-brand-dark/40">{copy.userMode.description}</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {[
+          { value: 'existing' as const, ...copy.userMode.existing },
+          { value: 'new' as const, ...copy.userMode.new },
+        ].map((option) => {
+          const isSelected = userMode === option.value;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => updateUserMode(option.value)}
+              aria-pressed={isSelected}
+              className={`min-h-24 rounded-2xl border px-5 py-4 text-left transition-colors ${
+                isSelected
+                  ? 'border-[#C99547] bg-[#FCF8F2] text-brand-dark'
+                  : 'border-brand-dark/10 bg-white text-brand-dark hover:border-brand-gold'
+              }`}
+            >
+              <span className="flex items-center justify-between gap-3">
+                <span className="text-sm font-bold">{option.label}</span>
+                {isSelected && <CheckCircle2 className="h-5 w-5 text-[#C99547]" />}
+              </span>
+              <span className="mt-2 block text-xs leading-relaxed text-brand-dark/45">{option.helper}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {userMode === 'existing' && (
+        <div className="space-y-3 rounded-2xl border border-brand-dark/10 bg-[#FCF8F2] p-4">
+          <FieldLabel label={copy.userMode.lookupLabel} helper={copy.userMode.lookupHelper}>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                className={inputClass}
+                value={phoneLookup}
+                inputMode="tel"
+                maxLength={14}
+                placeholder={copy.userMode.lookupPlaceholder}
+                onChange={(event) => updatePhoneLookup(event.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => void handleLookupExistingUser()}
+                disabled={lookupStatus === 'checking'}
+                className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-brand-dark px-6 text-sm font-bold text-white hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Search className="h-4 w-4" />
+                {lookupStatus === 'checking' ? copy.userMode.checking : copy.userMode.lookupButton}
+              </button>
+            </div>
+          </FieldLabel>
+          {lookupMessage && (
+            <p
+              className={`text-xs leading-relaxed ${
+                lookupStatus === 'found' ? 'text-green-700' : 'text-brand-dark/55'
+              }`}
+            >
+              {lookupMessage}
+            </p>
+          )}
+        </div>
+      )}
+
+      {shouldShowPersonalFields && (
+        <>
+          <FieldLabel label={copy.fields.fullName.label} helper={copy.fields.fullName.helper}>
+            <input
+              className={inputClass}
+              value={formValues.fullName}
+              disabled={userMode === 'existing'}
+              onChange={(event) => updateField('fullName', event.target.value)}
+            />
+          </FieldLabel>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <FieldLabel label={copy.fields.whatsapp.label} helper={copy.fields.whatsapp.helper}>
+              <input
+                className={inputClass}
+                value={formValues.whatsapp}
+                disabled={userMode === 'existing'}
+                inputMode="tel"
+                onChange={(event) => updateField('whatsapp', event.target.value)}
+              />
+            </FieldLabel>
+            <FieldLabel label={copy.fields.city.label} helper={copy.fields.city.helper}>
+              <select
+                className={selectClass}
+                value={formValues.city}
+                disabled={userMode === 'existing'}
+                onChange={(event) => {
+                  updateField('city', event.target.value);
+                  if (event.target.value !== 'Lainnya') {
+                    updateField('cityOther', '');
+                  }
+                }}
+              >
+                <option value="" disabled>{copy.fields.city.placeholder}</option>
+                {cityOptions.map((cityOption) => (
+                  <option key={cityOption}>{cityOption}</option>
+                ))}
+              </select>
+            </FieldLabel>
+          </div>
+          {formValues.city === 'Lainnya' && (
+            <FieldLabel label="Domisili lainnya*" helper="Hanya huruf. Otomatis Capital Each.">
+              <input
+                className={inputClass}
+                value={formValues.cityOther}
+                disabled={userMode === 'existing'}
+                onChange={(event) => updateField('cityOther', event.target.value)}
+              />
+            </FieldLabel>
+          )}
+        </>
+      )}
+    </section>
+  );
+
+  const renderClothingSection = () => (
+    <section className="space-y-5">
+      <h2 className="text-lg font-bold text-brand-dark">{copy.sections.clothing}</h2>
+      <FieldLabel label={copy.fields.itemName.label} helper={copy.fields.itemName.helper}>
+        <input
+          className={inputClass}
+          value={formValues.itemName}
+          onChange={(event) => updateField('itemName', event.target.value)}
+        />
+      </FieldLabel>
+      <FieldLabel label="Kategori gender*">
+        <select
+          className={selectClass}
+          value={formValues.categoryGender}
+          onChange={(event) => updateField('categoryGender', event.target.value)}
+        >
+          <option value="" disabled>Pilih kategori gender</option>
+          {genderCategoryOptions.map((genderOption) => (
+            <option key={genderOption.value} value={genderOption.value}>
+              {genderOption.label}
+            </option>
+          ))}
+        </select>
+      </FieldLabel>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <FieldLabel label={copy.fields.category.label}>
+          <select
+            className={selectClass}
+            value={formValues.category}
+            onChange={(event) => {
+              updateField('category', event.target.value);
+              if (event.target.value !== 'Yang lain') {
+                updateField('categoryOther', '');
+              }
+            }}
+          >
+            <option value="" disabled>{copy.fields.category.placeholder}</option>
+            {categoryOptions.map((categoryOption) => (
+              <option key={categoryOption}>{categoryOption}</option>
+            ))}
+          </select>
+        </FieldLabel>
+        <FieldLabel label={copy.fields.brandStatus.label}>
+          <select
+            className={selectClass}
+            value={formValues.brandStatus}
+            onChange={(event) => {
+              updateField('brandStatus', event.target.value);
+              if (event.target.value === 'false') {
+                updateField('brand', '');
+                setBrandProofs((currentProofs) => {
+                  currentProofs.forEach((proof) => URL.revokeObjectURL(proof.url));
+                  return [];
+                });
+              }
+            }}
+          >
+            <option value="" disabled>{copy.fields.brandStatus.placeholder}</option>
+            <option value="true">Ya - branded</option>
+            <option value="false">Tidak - non branded</option>
+          </select>
+        </FieldLabel>
+      </div>
+      {formValues.category === 'Yang lain' && (
+        <FieldLabel label="Kategori lainnya*" helper="Hanya huruf. Otomatis Capital Each.">
+          <input
+            className={inputClass}
+            value={formValues.categoryOther}
+            onChange={(event) => updateField('categoryOther', event.target.value)}
+          />
+        </FieldLabel>
+      )}
+      {isBranded && (
+        <FieldLabel label={copy.fields.brand.label}>
+          <input
+            className={inputClass}
+            value={formValues.brand}
+            onChange={(event) => updateField('brand', event.target.value)}
+          />
+        </FieldLabel>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <FieldLabel label={copy.fields.size.label} helper={copy.fields.size.helper}>
+          <input
+            className={inputClass}
+            value={formValues.size}
+            onChange={(event) => updateField('size', event.target.value)}
+          />
+        </FieldLabel>
+        <FieldLabel label={copy.fields.condition.label}>
+          <select
+            className={selectClass}
+            value={formValues.condition}
+            onChange={(event) => updateField('condition', event.target.value)}
+          >
+            <option value="" disabled>{copy.fields.condition.placeholder}</option>
+            {conditionOptions.map((conditionOption) => (
+              <option key={conditionOption}>{conditionOption}</option>
+            ))}
+          </select>
+        </FieldLabel>
+      </div>
+      <FieldLabel label={copy.fields.description.label} helper={copy.fields.description.helper}>
+        <textarea
+          className="min-h-28 w-full rounded-3xl border border-brand-dark/15 bg-white px-5 py-3 text-sm text-brand-dark outline-none transition-colors placeholder:text-brand-dark/30 focus:border-brand-gold"
+          value={formValues.description}
+          onChange={(event) => updateField('description', event.target.value)}
+        />
+      </FieldLabel>
+    </section>
+  );
+
+  const renderUploader = (
+    previews: UploadPreview[],
+    onAdd: (files: FileList | null) => void,
+    onRemove: (id: string) => void,
+    options?: { proof?: boolean }
+  ) => (
+    <div className="flex flex-wrap gap-3">
+      <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-brand-dark/20 bg-white text-brand-dark/70 hover:border-brand-gold">
+        <ImageIcon className="mb-2 h-5 w-5" />
+        <span className="text-sm font-medium">{copy.media.browse}</span>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(event) => {
+            onAdd(event.target.files);
+            event.currentTarget.value = '';
+          }}
+        />
+      </label>
+      {previews.map((preview) => (
+        <div key={preview.id} className="relative w-24">
+          <div className="h-24 w-24 overflow-hidden rounded-xl bg-[#F5F0EB]">
+            <img src={preview.url} alt={preview.name} className="h-full w-full object-cover" />
+          </div>
+          <button
+            type="button"
+            onClick={() => onRemove(preview.id)}
+            className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-lg bg-white text-red-600 shadow-md"
+            aria-label={copy.media.removeFile}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+          {options?.proof && (
+            <select
+              className="mt-2 w-full rounded-lg border border-brand-dark/15 bg-white px-2 py-1 text-xs text-brand-dark"
+              value={preview.proofKind}
+              onChange={(event) => updateProofKind(preview.id, event.target.value as ProofKind)}
+            >
+              <option>Label</option>
+              <option>Tag</option>
+              <option>Nota</option>
+            </select>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderMediaSection = () => (
+    <section className="space-y-7">
+      <div>
+        <h2 className="text-lg font-bold text-brand-dark">{copy.sections.itemPhotos}</h2>
+        <p className="mb-3 text-xs text-brand-dark/40">
+          {copy.media.itemPhotoHelper}
+        </p>
+        {renderUploader(itemPhotos, addItemPhotos, removeItemPhoto)}
+      </div>
+      {isBranded && (
+        <div>
+          <h2 className="text-lg font-bold text-brand-dark">{copy.sections.authenticityProof}</h2>
+          <p className="mb-3 text-xs text-brand-dark/40">
+            {copy.media.proofHelper}
+          </p>
+          <div className="mb-3 flex flex-wrap gap-2">
+            {(['Label', 'Tag', 'Nota'] as ProofKind[]).map((proofKind) => (
+              <button
+                key={proofKind}
+                type="button"
+                onClick={() => setSelectedProofKind(proofKind)}
+                className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+                  selectedProofKind === proofKind
+                    ? 'border-[#C99547] bg-[#C99547] text-white'
+                    : 'border-brand-dark/15 text-brand-dark hover:bg-[#FCF8F2]'
+                }`}
+              >
+                {proofKind}
+              </button>
+            ))}
+          </div>
+          {renderUploader(brandProofs, addBrandProofs, removeBrandProof, { proof: true })}
+        </div>
+      )}
+    </section>
+  );
+
+  const renderListingSection = () => (
+    <section className="space-y-8">
+      <div className="space-y-3">
+        <Toggle
+          checked={isPreLoved}
+          onChange={setIsPreLoved}
+          label={copy.listing.preLoved.label}
+          helper={copy.listing.preLoved.helper}
+        />
+        {isPreLoved && (
+          <FieldLabel label={copy.fields.buyPrice.label}>
+            <input
+              className={inputClass}
+              value={formValues.buyPrice}
+              inputMode="numeric"
+              onChange={(event) => updateField('buyPrice', formatThousands(event.target.value))}
+            />
+          </FieldLabel>
+        )}
+      </div>
+      <div className="space-y-3">
+        <Toggle
+          checked={isRental}
+          onChange={setIsRental}
+          label={copy.listing.rental.label}
+          helper={copy.listing.rental.helper}
+        />
+        {isRental && (
+          <FieldLabel label={copy.fields.rentPrice.label}>
+            <input
+              className={inputClass}
+              value={formValues.rentPrice}
+              inputMode="numeric"
+              onChange={(event) => updateField('rentPrice', formatThousands(event.target.value))}
+            />
+          </FieldLabel>
+        )}
+      </div>
+    </section>
+  );
+
+  const renderConfirmationCard = () => {
+    if (!confirmationKind) {
+      return null;
+    }
+
+    const isExistingUserConfirmation = confirmationKind === 'existing-user';
+
+    return (
+      <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/35 px-5">
+        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-[#FCF8F2] text-[#C99547]">
+            {isExistingUserConfirmation ? (
+              <AlertTriangle className="h-5 w-5" />
+            ) : (
+              <CheckCircle2 className="h-5 w-5" />
+            )}
+          </div>
+          <h2 className="text-xl font-bold text-brand-dark">
+            {isExistingUserConfirmation ? 'Nomor sudah terdaftar' : 'Konfirmasi upload'}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-brand-dark/60">
+            {isExistingUserConfirmation
+              ? 'Nomor WhatsApp ini sudah pernah upload. Kalau dilanjutkan dari pilihan user baru, data nama dan domisili untuk nomor ini akan mengikuti input yang kamu isi sekarang.'
+              : 'Pastikan informasi pribadi, detail item, harga, dan foto sudah benar sebelum dikirim untuk review QC.'}
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setConfirmationKind(null)}
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#C99547] px-5 text-sm font-bold text-[#C99547] hover:bg-[#FCF8F2]"
+            >
+              Cek lagi
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (isExistingUserConfirmation) {
+                  setHasConfirmedExistingUserConflict(true);
+                  setConfirmationKind('upload');
+                  return;
+                }
+
+                void performUpload();
+              }}
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-brand-dark px-5 text-sm font-bold text-white hover:bg-black/90"
+            >
+              {isExistingUserConfirmation ? 'Lanjutkan' : 'Kirim upload'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderStatusCard = () => {
+    if (!submitMessage || submitStatus === 'idle' || submitStatus === 'submitting') {
+      return null;
+    }
+
+    const isSuccess = submitStatus === 'success';
+
+    return (
+      <div
+        className={`mx-6 mb-4 rounded-2xl border p-4 text-sm shadow-sm md:mx-10 ${
+          isSuccess
+            ? 'border-green-100 bg-green-50 text-green-800'
+            : 'border-red-100 bg-red-50 text-red-800'
+        }`}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+              isSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {isSuccess ? <CheckCircle2 className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+          </div>
+          <div>
+            <h3 className="font-bold">{isSuccess ? 'Upload berhasil' : 'Upload belum berhasil'}</h3>
+            <p className="mt-1 leading-relaxed">{submitMessage}</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-[120] flex justify-end">
+      <button
+        type="button"
+        className="absolute inset-0 hidden bg-black/35 md:block"
+        aria-label={copy.buttons.close}
+        onClick={closeDrawer}
+      />
+
+      <aside className="relative z-10 flex h-[100dvh] w-full flex-col bg-white shadow-2xl md:max-w-[760px] md:border-l md:border-brand-dark/10">
+        <div className="flex items-start justify-between gap-4 border-b border-brand-dark/10 px-6 py-5 md:px-10 md:py-8">
+          <div>
+            <h1 className="text-3xl font-serif tracking-wide text-brand-dark md:text-4xl">
+              {copy.header.title}
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-brand-dark/70 md:text-base">
+              {copy.header.description}
+            </p>
+            <p className="mt-2 text-xs italic text-brand-dark/40">
+              {copy.header.privacy}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={closeDrawer}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-dark/15 text-brand-dark hover:bg-[#FCF8F2]"
+            aria-label={copy.buttons.close}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form
+          className="flex min-h-0 flex-1 flex-col"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleSubmit();
+          }}
+        >
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 md:px-10 md:py-8">
+            <div className="hidden space-y-10 md:block">
+              {renderPersonalSection()}
+              {shouldShowItemSections && (
+                <>
+                  <div className="h-px bg-brand-dark/10" />
+                  {renderClothingSection()}
+                </>
+              )}
+              {shouldShowItemSections && (
+                <>
+                  <div className="h-px bg-brand-dark/10" />
+                  {renderMediaSection()}
+                </>
+              )}
+              {shouldShowItemSections && (
+                <>
+                  <div className="h-px bg-brand-dark/10" />
+                  {renderListingSection()}
+                </>
+              )}
+            </div>
+
+            <div className="space-y-8 md:hidden">
+              {renderPersonalSection()}
+              {shouldShowItemSections && (
+                <>
+                  <div className="h-px bg-brand-dark/10" />
+                  {renderClothingSection()}
+                </>
+              )}
+              {shouldShowItemSections && (
+                <>
+                  <div className="h-px bg-brand-dark/10" />
+                  {renderMediaSection()}
+                </>
+              )}
+              {shouldShowItemSections && (
+                <>
+                  <div className="h-px bg-brand-dark/10" />
+                  {renderListingSection()}
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 border-t border-brand-dark/10 bg-white px-6 py-4 md:px-10 md:py-6">
+            <button
+              type="button"
+              onClick={closeDrawer}
+              disabled={isSubmitting}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#C99547] px-7 font-bold text-[#C99547] hover:bg-[#FCF8F2]"
+            >
+              {copy.buttons.cancel}
+            </button>
+
+            <button
+              type="submit"
+              disabled={!formComplete || isSubmitting || submitStatus === 'success'}
+              className="hidden min-h-12 items-center justify-center rounded-full bg-brand-dark px-9 font-bold text-white hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
+            >
+              {isSubmitting ? copy.buttons.submitting : copy.buttons.submit}
+            </button>
+
+            <button
+              type="submit"
+              disabled={!formComplete || isSubmitting || submitStatus === 'success'}
+              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-brand-dark px-7 font-bold text-white hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-40 md:hidden"
+            >
+              {isSubmitting ? copy.buttons.submitting : copy.buttons.submit}
+            </button>
+          </div>
+          {submitStatus === 'submitting' && submitMessage && (
+            <div className="border-t border-brand-dark/10 bg-[#FCF8F2] px-6 py-3 text-sm text-brand-dark/70 md:px-10">
+              {submitMessage}
+            </div>
+          )}
+          {renderStatusCard()}
+        </form>
+        {renderConfirmationCard()}
+      </aside>
+    </div>
+  );
+};
