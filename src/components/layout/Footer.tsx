@@ -10,7 +10,7 @@ export const Footer: React.FC = () => {
           {/* Left: Logo */}
           <div className="shrink-0 w-full md:w-auto flex justify-center md:justify-start">
             <Link to="/">
-              <img src="/assets/images/logo.dark.svg" alt="IJOL" className="h-8" />
+              <img src="/assets/images/logo.dark.full.svg" alt="IJOL" className="h-8" />
             </Link>
           </div>
 

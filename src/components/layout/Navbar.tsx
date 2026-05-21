@@ -5,6 +5,7 @@ import { UploadProductDrawerWithUserLookup as UploadProductDrawer } from '../for
 import { contactEmailUrl } from '../../config/contact';
 
 const donationFormUrl = 'https://forms.gle/SUqFHTXzJGmDLxXb7';
+const recycleFormUrl = 'https://forms.gle/XcAZsha65NmZg1bx7';
 
 export const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -15,7 +16,7 @@ export const Navbar: React.FC = () => {
   const navLinks = [
     { label: 'Koleksi Outfit', to: '/collections' },
     { label: 'Donasi', to: donationFormUrl, external: true },
-    { label: 'Daur Ulang', to: '/#recycle' },
+    { label: 'Daur Ulang', to: recycleFormUrl, external: true },
   ];
 
   const preventSameRouteReload = (

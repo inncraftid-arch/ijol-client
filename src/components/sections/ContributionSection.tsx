@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const donationFormUrl = 'https://forms.gle/SUqFHTXzJGmDLxXb7';
+const recycleFormUrl = 'https://forms.gle/XcAZsha65NmZg1bx7';
 
 export const ContributionSection: React.FC = () => {
   const renderDonasiCard = () => (
@@ -88,9 +89,14 @@ export const ContributionSection: React.FC = () => {
       </div>
 
       <div className="mt-auto">
-        <button className="w-full bg-white border border-brand-dark text-brand-dark hover:bg-[#F5F0EB]/50 py-3 rounded-full font-bold transition-colors">
+        <a
+          href={recycleFormUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="block w-full bg-white border border-brand-dark text-brand-dark hover:bg-[#F5F0EB]/50 py-3 rounded-full font-bold transition-colors text-center"
+        >
           Daur Ulang Pakaian
-        </button>
+        </a>
       </div>
     </div>
   );

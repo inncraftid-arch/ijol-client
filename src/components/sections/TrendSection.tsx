@@ -16,14 +16,14 @@ export const TrendSection: React.FC = () => {
 
   return (
     <section ref={containerRef} className="py-12 md:py-16 xl:py-20 overflow-hidden bg-white">
-      <div className="container mx-auto px-4 md:px-8 max-w-[1440px] mb-8 md:mb-12 flex flex-col items-center">
+      <div className="container mx-auto px-4 md:px-8 max-w-[1440px] mb-10 md:mb-16 flex flex-col items-center">
         {/* Decorative Heading */}
-        <div className="relative w-full flex flex-col md:flex-row items-center justify-center pt-16 md:pt-0">
+        <div className="relative w-full flex flex-col md:flex-row items-center justify-center pt-28 sm:pt-32 md:pt-0">
           {/* Left decoration */}
           <img
             src="/assets/images/trend.left.svg"
             alt=""
-            className="absolute left-0 top-0 md:top-1/2 md:-translate-y-1/2 w-36 sm:w-44 lg:w-64 xl:w-88 h-auto pointer-events-none -ml-8 sm:-ml-4 md:ml-0"
+            className="absolute left-0 top-0 md:top-1/2 md:-translate-y-1/2 w-32 sm:w-40 lg:w-64 xl:w-88 h-auto pointer-events-none translate-x-0 sm:-translate-x-36 md:-translate-x-32 lg:-translate-x-24 xl:-translate-x-12"
           />
           
           <div className="flex flex-col items-center text-center px-2 z-10">
@@ -43,7 +43,7 @@ export const TrendSection: React.FC = () => {
           <img
             src="/assets/images/trend.right.svg"
             alt=""
-            className="absolute right-0 top-0 md:top-1/2 md:-translate-y-1/2 w-36 sm:w-44 lg:w-64 xl:w-88 h-auto pointer-events-none -mr-8 sm:-mr-4 md:mr-0"
+            className="absolute right-0 top-0 md:top-1/2 md:-translate-y-1/2 w-32 sm:w-40 lg:w-64 xl:w-88 h-auto pointer-events-none translate-x-0 sm:translate-x-36 md:translate-x-32 lg:translate-x-24 xl:translate-x-12"
           />
         </div>
       </div>

@@ -2,7 +2,7 @@ export const uploadProductFormCopy = {
   header: {
     title: 'Daftarkan Pakaianmu',
     description:
-      'Upload baju yang tidak terpakai ke katalog IJOL. Tim kami akan review dan menghubungimu jika lolos QC.',
+      'Upload baju yang tidak terpakai ke katalog IJOL. Tim kami akan review dan menghubungimu jika lolos QC. Pastikan foto jelas dan informasi lengkap ya!',
     privacy: 'Kami melindungi datamu. Informasi pribadi tidak akan kami salahgunakan.',
   },
   sections: {
@@ -47,7 +47,8 @@ export const uploadProductFormCopy = {
     },
     itemName: {
       label: 'Nama item*',
-      helper: 'Hanya huruf, spasi, dan tanda hubung (-).',
+      helper: 'Contoh: Kemeja flannel kotak-kotak, Kaos Oversize, Celana jeans slim fit hitam',
+      placeholder: 'Isi nama jenis pakaianmu',
     },
     category: {
       label: 'Kategori*',
@@ -59,10 +60,12 @@ export const uploadProductFormCopy = {
     },
     brand: {
       label: 'Brand*',
+      placeholder: 'Masukkan brand',
     },
     size: {
       label: 'Ukuran*',
-      helper: 'Hanya angka dan huruf. Huruf otomatis menjadi kapital.',
+      helper: 'Contoh: S, M, L, XL, 30, 32, 38, Free Size',
+      placeholder: 'Masukkan ukurannya',
     },
     condition: {
       label: 'Kondisi item*',
@@ -71,18 +74,21 @@ export const uploadProductFormCopy = {
     description: {
       label: 'Deskripsi*',
       helper: 'Ceritakan detail item: warna, bahan, kondisi detail, alasan tidak dipakai, dll.',
+      placeholder: 'Masukkan deskripsi',
     },
     buyPrice: {
       label: 'Harga Item (Rp)*',
+      placeholder: 'Masukkan harga',
     },
     rentPrice: {
       label: 'Harga Sewa/hari (Rp)*',
+      placeholder: 'Masukkan harga',
     },
   },
   media: {
     browse: 'Browse',
     itemPhotoHelper:
-      'Upload minimal 1 foto untuk debug. Nanti bisa dinaikkan lagi menjadi tampak depan, belakang, dan detail kondisi.',
+      'Upload min. 3 foto: tampak depan, tampak belakang, dan detail kondisi. Max 5MB per foto. Format JPG/PNG.',
     proofHelper:
       'Opsional. Pilih tipe bukti terlebih dahulu, lalu upload label, tag, nota, atau bukti pembelian.',
     removeFile: 'Hapus file',
@@ -91,7 +97,7 @@ export const uploadProductFormCopy = {
     preLoved: {
       label: 'Pre-Loved Item',
       helper:
-        'Aktifkan kalau item boleh dibeli. Pembeli perlu mengirim minimal 1 pakaian tidak terpakai ke IJOL Fiber.',
+        'Apabila kamu mengaktifkan Pre-Loved, calon pembeli perlu mengirim minimal 1 pakaian tidak terpakai ke IJOL Fiber — apapun kondisinya. Ini memastikan satu pakaian masuk, satu pakaian keluar.',
     },
     rental: {
       label: 'Sewa Item',

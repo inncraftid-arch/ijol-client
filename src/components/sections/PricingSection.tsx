@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router';
 import { contactEmailUrl } from '../../config/contact';
 
 type Feature = {
@@ -37,6 +38,7 @@ const plans: PricingPlan[] = [
     buttonVariant: 'outline',
     buttonTextColor: 'text-[#453421]',
     buttonBorderColor: 'border-[#453421]/20',
+    buttonHref: '/collections',
   },
   {
     id: 'single',
@@ -52,6 +54,7 @@ const plans: PricingPlan[] = [
     buttonVariant: 'outline',
     buttonTextColor: 'text-[#453421]',
     buttonBorderColor: 'border-[#453421]/20',
+    buttonHref: '/collections',
   },
   {
     id: 'quad',
@@ -138,7 +141,7 @@ export const PricingSection: React.FC = () => {
 
       {/* Horizontal Scroll Container */}
       <div className="mt-8 md:mt-12 w-full overflow-x-auto pb-8 hide-scrollbar">
-        <div className="flex items-start gap-4 md:gap-6 px-4 md:px-8 max-w-[1440px] mx-auto min-w-max">
+        <div className="flex items-stretch gap-4 md:gap-6 px-4 md:px-8 max-w-[1440px] mx-auto min-w-max">
           {plans.map((plan, index) => (
             <motion.div
               key={plan.id}
@@ -146,7 +149,7 @@ export const PricingSection: React.FC = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="w-[270px] sm:w-[300px] md:w-[320px] flex-shrink-0 rounded-[2rem] border border-brand-dark/10 bg-white flex flex-col overflow-hidden"
+              className="flex w-[270px] flex-shrink-0 flex-col overflow-hidden rounded-[2rem] border border-brand-dark/10 bg-white sm:w-[300px] md:w-[320px]"
             >
               {/* Card Header (Colored Background) */}
               <div className="bg-[#F5F0EB]/60 p-6 pt-8 pb-10 m-2 rounded-[1.5rem] relative flex flex-col items-center justify-center min-h-[160px]">
@@ -172,8 +175,8 @@ export const PricingSection: React.FC = () => {
               </div>
 
               {/* Card Body (Features and Button) */}
-              <div className="p-6 flex flex-col grow justify-between bg-white">
-                <ul className="flex flex-col gap-1 mb-8">
+              <div className="flex grow flex-col bg-white p-6">
+                <ul className="mb-8 flex flex-col gap-1">
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm md:text-base text-medium">
                       {feature.included ? <CheckIcon /> : <CrossIcon />}
@@ -184,12 +187,16 @@ export const PricingSection: React.FC = () => {
                   ))}
                 </ul>
 
-                {plan.buttonHref ? (
-                  <a href={plan.buttonHref} className={getPlanButtonClassName(plan)}>
+                {plan.buttonHref?.startsWith('/') ? (
+                  <Link to={plan.buttonHref} className={`mt-auto ${getPlanButtonClassName(plan)}`}>
+                    {plan.buttonText}
+                  </Link>
+                ) : plan.buttonHref ? (
+                  <a href={plan.buttonHref} className={`mt-auto ${getPlanButtonClassName(plan)}`}>
                     {plan.buttonText}
                   </a>
                 ) : (
-                  <button type="button" className={getPlanButtonClassName(plan)}>
+                  <button type="button" className={`mt-auto ${getPlanButtonClassName(plan)}`}>
                     {plan.buttonText}
                   </button>
                 )}

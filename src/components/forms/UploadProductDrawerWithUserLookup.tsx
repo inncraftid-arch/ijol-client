@@ -84,6 +84,14 @@ const conditionOptions = [
   'Perlu diketahui (ada cacat/kekurangan, saya akan jelaskan)',
 ] as const;
 
+const conditionOptionLabels: Record<(typeof conditionOptions)[number], string> = {
+  'Baru / belum pernah dipakai (tag masih ada)': 'Baru / belum pernah dipakai...',
+  'Seperti baru (1–2× pakai)': 'Seperti baru...',
+  'Baik (beberapa kali pakai, tidak ada cacat)': 'Baik...',
+  'Cukup baik (ada sedikit tanda pemakaian)': 'Cukup baik...',
+  'Perlu diketahui (ada cacat/kekurangan, saya akan jelaskan)': 'Perlu diketahui...',
+};
+
 const initialFormValues: FormValues = {
   fullName: '',
   whatsapp: '',
@@ -195,7 +203,7 @@ const inputClass =
   'w-full rounded-full border border-brand-dark/15 bg-white px-5 py-3 text-sm text-brand-dark outline-none transition-colors placeholder:text-brand-dark/30 focus:border-brand-gold';
 
 const selectClass =
-  'w-full rounded-full border border-brand-dark/15 bg-white px-5 py-3 text-sm text-brand-dark outline-none transition-colors focus:border-brand-gold';
+  'w-full truncate rounded-full border border-brand-dark/15 bg-white px-5 py-3 text-sm text-brand-dark outline-none transition-colors focus:border-brand-gold';
 
 const Toggle: React.FC<{ checked: boolean; onChange: (checked: boolean) => void; label: string; helper: string }> = ({
   checked,
@@ -262,7 +270,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
       formValues.condition &&
       formValues.description.trim()
   );
-  const mediaComplete = itemPhotos.length >= 1;
+  const mediaComplete = itemPhotos.length >= 3;
   const listingComplete = Boolean(
     (!isPreLoved || formValues.buyPrice.trim()) && (!isRental || formValues.rentPrice.trim())
   );
@@ -646,7 +654,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
             </FieldLabel>
           </div>
           {formValues.city === 'Lainnya' && (
-            <FieldLabel label="Domisili lainnya*" helper="Hanya huruf. Otomatis Capital Each.">
+            <FieldLabel label="Domisili lainnya*">
               <input
                 className={inputClass}
                 value={formValues.cityOther}
@@ -666,6 +674,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
       <FieldLabel label={copy.fields.itemName.label} helper={copy.fields.itemName.helper}>
         <input
           className={inputClass}
+          placeholder={copy.fields.itemName.placeholder}
           value={formValues.itemName}
           onChange={(event) => updateField('itemName', event.target.value)}
         />
@@ -718,15 +727,16 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
             }}
           >
             <option value="" disabled>{copy.fields.brandStatus.placeholder}</option>
-            <option value="true">Ya - branded</option>
-            <option value="false">Tidak - non branded</option>
+            <option value="true">Ya — branded (Zara, H&M, Uniqlo, lokal branded, dll)</option>
+            <option value="false">Tidak - Non Branded/General</option>
           </select>
         </FieldLabel>
       </div>
       {formValues.category === 'Yang lain' && (
-        <FieldLabel label="Kategori lainnya*" helper="Hanya huruf. Otomatis Capital Each.">
+        <FieldLabel label="Kategori lainnya*">
           <input
             className={inputClass}
+            placeholder="Masukkan kategori lainnya"
             value={formValues.categoryOther}
             onChange={(event) => updateField('categoryOther', event.target.value)}
           />
@@ -736,6 +746,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
         <FieldLabel label={copy.fields.brand.label}>
           <input
             className={inputClass}
+            placeholder={copy.fields.brand.placeholder}
             value={formValues.brand}
             onChange={(event) => updateField('brand', event.target.value)}
           />
@@ -745,6 +756,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
         <FieldLabel label={copy.fields.size.label} helper={copy.fields.size.helper}>
           <input
             className={inputClass}
+            placeholder={copy.fields.size.placeholder}
             value={formValues.size}
             onChange={(event) => updateField('size', event.target.value)}
           />
@@ -757,7 +769,9 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
           >
             <option value="" disabled>{copy.fields.condition.placeholder}</option>
             {conditionOptions.map((conditionOption) => (
-              <option key={conditionOption}>{conditionOption}</option>
+              <option key={conditionOption} value={conditionOption}>
+                {conditionOptionLabels[conditionOption]}
+              </option>
             ))}
           </select>
         </FieldLabel>
@@ -765,6 +779,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
       <FieldLabel label={copy.fields.description.label} helper={copy.fields.description.helper}>
         <textarea
           className="min-h-28 w-full rounded-3xl border border-brand-dark/15 bg-white px-5 py-3 text-sm text-brand-dark outline-none transition-colors placeholder:text-brand-dark/30 focus:border-brand-gold"
+          placeholder={copy.fields.description.placeholder}
           value={formValues.description}
           onChange={(event) => updateField('description', event.target.value)}
         />
@@ -872,6 +887,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
           <FieldLabel label={copy.fields.buyPrice.label}>
             <input
               className={inputClass}
+              placeholder={copy.fields.buyPrice.placeholder}
               value={formValues.buyPrice}
               inputMode="numeric"
               onChange={(event) => updateField('buyPrice', formatThousands(event.target.value))}
@@ -890,6 +906,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
           <FieldLabel label={copy.fields.rentPrice.label}>
             <input
               className={inputClass}
+              placeholder={copy.fields.rentPrice.placeholder}
               value={formValues.rentPrice}
               inputMode="numeric"
               onChange={(event) => updateField('rentPrice', formatThousands(event.target.value))}
@@ -1001,7 +1018,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
             <h1 className="text-3xl font-serif tracking-wide text-brand-dark md:text-4xl">
               {copy.header.title}
             </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-brand-dark/70 md:text-base">
+            <p className="mt-2 max-w-2xl text-sm text-brand-dark md:text-base">
               {copy.header.description}
             </p>
             <p className="mt-2 text-xs italic text-brand-dark/40">
