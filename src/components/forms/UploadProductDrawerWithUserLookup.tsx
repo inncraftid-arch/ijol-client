@@ -47,6 +47,9 @@ type UserMode = '' | 'existing' | 'new';
 type LookupStatus = 'idle' | 'checking' | 'found' | 'not-found' | 'error';
 type ConfirmationKind = 'upload' | 'existing-user' | null;
 
+const maxUploadFileSize = 5 * 1024 * 1024;
+const allowedUploadContentTypes = ['image/jpeg', 'image/png'];
+
 const cityOptions = [
   'Jakarta',
   'Bogor',
@@ -129,6 +132,25 @@ const appendUploadPreviews = (
   return keptPreviews;
 };
 
+const validateUploadFiles = (files: FileList | null) => {
+  const selectedFiles = Array.from(files || []);
+  const invalidFile = selectedFiles.find((file) => {
+    const contentType = file.type.toLowerCase();
+
+    return file.size > maxUploadFileSize || !allowedUploadContentTypes.includes(contentType);
+  });
+
+  if (!invalidFile) {
+    return '';
+  }
+
+  if (invalidFile.size > maxUploadFileSize) {
+    return `${invalidFile.name} melebihi 5MB. Pilih foto yang lebih kecil.`;
+  }
+
+  return `${invalidFile.name} bukan format JPG/PNG. Ubah format foto terlebih dahulu lalu upload lagi.`;
+};
+
 const formatThousands = (value: string) => {
   const numericValue = value.replace(/\D/g, '');
 
@@ -156,6 +178,22 @@ const getUserFacingErrorMessage = (error: unknown) => {
     return 'Sistem error. Silakan coba lagi atau hubungi admin.';
   }
 
+  if (error.message.includes('Gagal menyimpan user')) {
+    return 'Gagal menyimpan data pengguna. Pastikan nomor WA diawali 08, berisi 10-14 digit, dan data pribadi sudah lengkap.';
+  }
+
+  if (error.message.includes('Gagal upload gambar')) {
+    return 'Gagal upload gambar. Cek koneksi internet, ukuran foto maksimal 5MB, format JPG/PNG, atau konfigurasi CORS bucket S3.';
+  }
+
+  if (error.message.includes('Gagal menyimpan item')) {
+    return 'Gagal menyimpan data item. Cek nama item, kategori, size, kondisi, harga, dan pastikan policy Supabase untuk table items sudah aktif.';
+  }
+
+  if (error.message.includes('Gagal menyimpan metadata gambar')) {
+    return 'Gambar berhasil diupload, tetapi data foto gagal disimpan. Cek policy Supabase untuk table item_photos dan item_brand_proofs.';
+  }
+
   const technicalPatterns = [
     'row-level security',
     'violates',
@@ -172,6 +210,26 @@ const getUserFacingErrorMessage = (error: unknown) => {
     'invalid input',
     'Request gagal',
   ];
+
+  if (error.message.includes('Ukuran file maksimal 5MB')) {
+    return 'Ukuran file maksimal 5MB per foto. Pilih foto yang lebih kecil.';
+  }
+
+  if (error.message.includes('File harus berupa gambar')) {
+    return 'File harus berupa gambar JPG/PNG.';
+  }
+
+  if (
+    error.message.includes('Gagal upload') ||
+    error.message.includes('CORS bucket S3')
+  ) {
+    return 'Gagal upload gambar. Cek koneksi internet, ukuran foto, format JPG/PNG, atau konfigurasi CORS bucket S3.';
+  }
+
+  if (error.message.includes('Failed to fetch')) {
+    return 'Gagal menghubungi server. Cek koneksi internet, domain Netlify diizinkan oleh Supabase/S3, dan coba lagi.';
+  }
+
   const isTechnicalError = technicalPatterns.some((pattern) =>
     error.message.toLowerCase().includes(pattern.toLowerCase())
   );
@@ -422,6 +480,14 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
   };
 
   const addItemPhotos = (files: FileList | null) => {
+    const validationMessage = validateUploadFiles(files);
+
+    if (validationMessage) {
+      setSubmitStatus('error');
+      setSubmitMessage(validationMessage);
+      return;
+    }
+
     const nextPreviews = createUploadPreviews(files);
     setSubmitStatus('idle');
     setSubmitMessage('');
@@ -429,6 +495,14 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
   };
 
   const addBrandProofs = (files: FileList | null) => {
+    const validationMessage = validateUploadFiles(files);
+
+    if (validationMessage) {
+      setSubmitStatus('error');
+      setSubmitMessage(validationMessage);
+      return;
+    }
+
     const nextPreviews = createUploadPreviews(files).map((preview) => ({
       ...preview,
       proofKind: selectedProofKind,
@@ -510,6 +584,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
       closeDrawer();
       onSuccess?.();
     } catch (error) {
+      console.error('Upload product failed', error);
       setSubmitStatus('error');
       setSubmitMessage(getUserFacingErrorMessage(error));
     }
@@ -804,7 +879,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
         <span className="text-sm font-medium">{copy.media.browse}</span>
         <input
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png"
           multiple
           className="hidden"
           onChange={(event) => {
