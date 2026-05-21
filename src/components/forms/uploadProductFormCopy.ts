@@ -35,10 +35,12 @@ export const uploadProductFormCopy = {
     fullName: {
       label: 'Nama Lengkap*',
       helper: 'Nama kamu akan tampil di info pakaian sebagai pemilik.',
+      placeholder: 'Masukkan nama lengkap',
     },
     whatsapp: {
       label: 'Nomor WhatsApp aktif*',
-      helper: 'Kami akan hubungi via WA untuk konfirmasi QC dan permintaan swap/beli.',
+      helper: 'Nomor WA ini akan jadi ID unik kamu. Kami akan kirim info hasil QC dan hubungi kamu jika ada yang tertarik swap.',
+      placeholder: 'Contoh: 081234567890',
     },
     city: {
       label: 'Kota Domisili*',

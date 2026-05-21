@@ -84,14 +84,6 @@ const conditionOptions = [
   'Perlu diketahui (ada cacat/kekurangan, saya akan jelaskan)',
 ] as const;
 
-const conditionOptionLabels: Record<(typeof conditionOptions)[number], string> = {
-  'Baru / belum pernah dipakai (tag masih ada)': 'Baru / belum pernah dipakai...',
-  'Seperti baru (1–2× pakai)': 'Seperti baru...',
-  'Baik (beberapa kali pakai, tidak ada cacat)': 'Baik...',
-  'Cukup baik (ada sedikit tanda pemakaian)': 'Cukup baik...',
-  'Perlu diketahui (ada cacat/kekurangan, saya akan jelaskan)': 'Perlu diketahui...',
-};
-
 const initialFormValues: FormValues = {
   fullName: '',
   whatsapp: '',
@@ -193,8 +185,12 @@ const FieldLabel: React.FC<{ label: string; helper?: string; children: React.Rea
   children,
 }) => (
   <label className="block">
-    <span className="block text-sm font-medium text-brand-dark mb-1">{label}</span>
-    {children}
+    <div className="relative pt-2">
+      <span className="absolute left-5 top-2 z-10 -translate-y-1/2 bg-white px-2 text-sm font-medium text-brand-dark">
+        {label}
+      </span>
+      {children}
+    </div>
     {helper && <span className="block mt-1.5 text-xs text-brand-dark/35">{helper}</span>}
   </label>
 );
@@ -203,7 +199,7 @@ const inputClass =
   'w-full rounded-full border border-brand-dark/15 bg-white px-5 py-3 text-sm text-brand-dark outline-none transition-colors placeholder:text-brand-dark/30 focus:border-brand-gold';
 
 const selectClass =
-  'w-full truncate rounded-full border border-brand-dark/15 bg-white px-5 py-3 text-sm text-brand-dark outline-none transition-colors focus:border-brand-gold';
+  'w-full truncate rounded-full border border-brand-dark/15 bg-white px-5 py-3 pr-10 text-sm text-brand-dark outline-none transition-colors focus:border-brand-gold';
 
 const Toggle: React.FC<{ checked: boolean; onChange: (checked: boolean) => void; label: string; helper: string }> = ({
   checked,
@@ -259,7 +255,6 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
   const personalComplete = Boolean(
     shouldShowPersonalFields && formValues.fullName.trim() && formValues.whatsapp.trim() && selectedCity
   );
-  const shouldShowItemSections = personalComplete;
   const clothingComplete = Boolean(
     formValues.itemName.trim() &&
       formValues.categoryGender &&
@@ -274,6 +269,9 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
   const listingComplete = Boolean(
     (!isPreLoved || formValues.buyPrice.trim()) && (!isRental || formValues.rentPrice.trim())
   );
+  const shouldShowClothingSection = personalComplete;
+  const shouldShowMediaSection = shouldShowClothingSection && clothingComplete;
+  const shouldShowListingSection = shouldShowMediaSection && mediaComplete;
   const formComplete = personalComplete && clothingComplete && mediaComplete && listingComplete;
   const isSubmitting = submitStatus === 'submitting';
 
@@ -580,28 +578,34 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
       </div>
 
       {userMode === 'existing' && (
-        <div className="space-y-3 rounded-2xl border border-brand-dark/10 bg-[#FCF8F2] p-4">
-          <FieldLabel label={copy.userMode.lookupLabel} helper={copy.userMode.lookupHelper}>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                className={inputClass}
-                value={phoneLookup}
-                inputMode="tel"
-                maxLength={14}
-                placeholder={copy.userMode.lookupPlaceholder}
-                onChange={(event) => updatePhoneLookup(event.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => void handleLookupExistingUser()}
-                disabled={lookupStatus === 'checking'}
-                className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-brand-dark px-6 text-sm font-bold text-white hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <Search className="h-4 w-4" />
-                {lookupStatus === 'checking' ? copy.userMode.checking : copy.userMode.lookupButton}
-              </button>
+        <div className="space-y-3 rounded-2xl border border-brand-dark/10 bg-white p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+            <div className="min-w-0 flex-1">
+              <div className="relative pt-2">
+                <span className="absolute left-5 top-2 -translate-y-1/2 bg-white px-2 text-sm font-medium text-brand-dark">
+                  {copy.userMode.lookupLabel}
+                </span>
+                <input
+                  className={inputClass}
+                  value={phoneLookup}
+                  inputMode="tel"
+                  maxLength={14}
+                  placeholder={copy.userMode.lookupPlaceholder}
+                  onChange={(event) => updatePhoneLookup(event.target.value)}
+                />
+              </div>
+              <p className="mt-1.5 text-xs leading-relaxed text-brand-dark/35">{copy.userMode.lookupHelper}</p>
             </div>
-          </FieldLabel>
+            <button
+              type="button"
+              onClick={() => void handleLookupExistingUser()}
+              disabled={lookupStatus === 'checking'}
+              className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-brand-dark px-6 text-sm font-bold text-white hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-40 sm:mt-2"
+            >
+              <Search className="h-4 w-4" />
+              {lookupStatus === 'checking' ? copy.userMode.checking : copy.userMode.lookupButton}
+            </button>
+          </div>
           {lookupMessage && (
             <p
               className={`text-xs leading-relaxed ${
@@ -616,18 +620,20 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
 
       {shouldShowPersonalFields && (
         <>
-          <FieldLabel label={copy.fields.fullName.label} helper={copy.fields.fullName.helper}>
-            <input
-              className={inputClass}
-              value={formValues.fullName}
-              disabled={userMode === 'existing'}
-              onChange={(event) => updateField('fullName', event.target.value)}
+            <FieldLabel label={copy.fields.fullName.label} helper={copy.fields.fullName.helper}>
+              <input
+                className={inputClass}
+                placeholder={copy.fields.fullName.placeholder}
+                value={formValues.fullName}
+                disabled={userMode === 'existing'}
+                onChange={(event) => updateField('fullName', event.target.value)}
             />
           </FieldLabel>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <FieldLabel label={copy.fields.whatsapp.label} helper={copy.fields.whatsapp.helper}>
               <input
                 className={inputClass}
+                placeholder={copy.fields.whatsapp.placeholder}
                 value={formValues.whatsapp}
                 disabled={userMode === 'existing'}
                 inputMode="tel"
@@ -657,6 +663,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
             <FieldLabel label="Domisili lainnya*">
               <input
                 className={inputClass}
+                placeholder="Masukkan kota domisili"
                 value={formValues.cityOther}
                 disabled={userMode === 'existing'}
                 onChange={(event) => updateField('cityOther', event.target.value)}
@@ -769,9 +776,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
           >
             <option value="" disabled>{copy.fields.condition.placeholder}</option>
             {conditionOptions.map((conditionOption) => (
-              <option key={conditionOption} value={conditionOption}>
-                {conditionOptionLabels[conditionOption]}
-              </option>
+              <option key={conditionOption} value={conditionOption}>{conditionOption}</option>
             ))}
           </select>
         </FieldLabel>
@@ -1045,19 +1050,19 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 md:px-10 md:py-8">
             <div className="hidden space-y-10 md:block">
               {renderPersonalSection()}
-              {shouldShowItemSections && (
+              {shouldShowClothingSection && (
                 <>
                   <div className="h-px bg-brand-dark/10" />
                   {renderClothingSection()}
                 </>
               )}
-              {shouldShowItemSections && (
+              {shouldShowMediaSection && (
                 <>
                   <div className="h-px bg-brand-dark/10" />
                   {renderMediaSection()}
                 </>
               )}
-              {shouldShowItemSections && (
+              {shouldShowListingSection && (
                 <>
                   <div className="h-px bg-brand-dark/10" />
                   {renderListingSection()}
@@ -1067,19 +1072,19 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
 
             <div className="space-y-8 md:hidden">
               {renderPersonalSection()}
-              {shouldShowItemSections && (
+              {shouldShowClothingSection && (
                 <>
                   <div className="h-px bg-brand-dark/10" />
                   {renderClothingSection()}
                 </>
               )}
-              {shouldShowItemSections && (
+              {shouldShowMediaSection && (
                 <>
                   <div className="h-px bg-brand-dark/10" />
                   {renderMediaSection()}
                 </>
               )}
-              {shouldShowItemSections && (
+              {shouldShowListingSection && (
                 <>
                   <div className="h-px bg-brand-dark/10" />
                   {renderListingSection()}
