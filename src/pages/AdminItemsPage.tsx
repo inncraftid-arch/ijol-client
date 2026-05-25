@@ -346,7 +346,7 @@ export const AdminItemsPage: React.FC = () => {
         ) : (
           <div className="overflow-hidden rounded-lg border border-brand-dark/10 bg-white">
             <div className="hidden grid-cols-[96px_1.25fr_1fr_1fr_140px_180px] gap-4 border-b border-brand-dark/10 bg-[#FCF8F2] px-4 py-3 text-xs font-bold uppercase tracking-wide text-brand-dark/55 lg:grid">
-              <span>Foto</span>
+              <span>Foto-Foto</span>
               <span>Item</span>
               <span>User</span>
               <span>Info</span>
