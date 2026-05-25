@@ -11,7 +11,7 @@ export const Footer: React.FC = () => {
   return (
     <div className="bg-white">
       <footer className="bg-[#4A3D30] text-white py-4 rounded-t-[2.5rem] w-full mx-auto">
-        <div className="container mx-auto px-4 md:px-8 max-w-[1440px] flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
+        <div className="container mx-auto px-4 md:px-8 max-w-360 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
           {/* Left: Logo */}
           <div className="shrink-0 w-full md:w-auto flex justify-center md:justify-start">
             <Link to="/">
