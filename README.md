@@ -118,6 +118,7 @@ Perubahan schema item terbaru:
 - `name` hanya menerima huruf, spasi, dan `-`.
 - `size` hanya menerima huruf kapital dan angka.
 - `condition` dibatasi ke opsi kondisi yang ada di form.
+- Ukuran foto maksimal 10MB per file.
 
 Existing user lookup memakai table `VITE_SUPABASE_USERS_TABLE` dengan kolom:
 

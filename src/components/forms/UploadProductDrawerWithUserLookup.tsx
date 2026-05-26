@@ -46,8 +46,11 @@ type FormValues = {
 type UserMode = '' | 'existing' | 'new';
 type LookupStatus = 'idle' | 'checking' | 'found' | 'not-found' | 'error';
 type ConfirmationKind = 'upload' | 'existing-user' | null;
+type ValidationField = keyof FormValues | 'userMode' | 'phoneLookup' | 'itemPhotos';
 
-const maxUploadFileSize = 5 * 1024 * 1024;
+const maxUploadFileSizeMb = 10;
+const maxUploadFileSize = maxUploadFileSizeMb * 1024 * 1024;
+const minItemPhotoCount = 3;
 const allowedUploadContentTypes = ['image/jpeg', 'image/png'];
 
 const cityOptions = [
@@ -145,7 +148,7 @@ const validateUploadFiles = (files: FileList | null) => {
   }
 
   if (invalidFile.size > maxUploadFileSize) {
-    return `${invalidFile.name} melebihi 5MB. Pilih foto yang lebih kecil.`;
+    return `${invalidFile.name} melebihi ${maxUploadFileSizeMb}MB. Pilih foto yang lebih kecil.`;
   }
 
   return `${invalidFile.name} bukan format JPG/PNG. Ubah format foto terlebih dahulu lalu upload lagi.`;
@@ -183,7 +186,11 @@ const getUserFacingErrorMessage = (error: unknown) => {
   }
 
   if (error.message.includes('Gagal upload gambar')) {
-    return 'Gagal upload gambar. Cek koneksi internet, ukuran foto maksimal 5MB, format JPG/PNG, atau konfigurasi CORS bucket S3.';
+    const detail = error.message.split('Detail:')[1]?.trim();
+
+    return detail
+      ? `Gagal upload gambar. Detail: ${detail} Coba koneksi yang lebih stabil atau pilih foto yang lebih kecil.`
+      : `Gagal upload gambar. Cek koneksi internet, ukuran foto maksimal ${maxUploadFileSizeMb}MB, format JPG/PNG, atau konfigurasi CORS bucket S3.`;
   }
 
   if (error.message.includes('Gagal menyimpan item')) {
@@ -211,8 +218,11 @@ const getUserFacingErrorMessage = (error: unknown) => {
     'Request gagal',
   ];
 
-  if (error.message.includes('Ukuran file maksimal 5MB')) {
-    return 'Ukuran file maksimal 5MB per foto. Pilih foto yang lebih kecil.';
+  if (
+    error.message.includes('Ukuran file maksimal 5MB') ||
+    error.message.includes(`Ukuran file maksimal ${maxUploadFileSizeMb}MB`)
+  ) {
+    return `Ukuran file maksimal ${maxUploadFileSizeMb}MB per foto. Pilih foto yang lebih kecil.`;
   }
 
   if (error.message.includes('File harus berupa gambar')) {
@@ -237,19 +247,30 @@ const getUserFacingErrorMessage = (error: unknown) => {
   return isTechnicalError ? 'Sistem error. Silakan coba lagi atau hubungi admin.' : error.message;
 };
 
-const FieldLabel: React.FC<{ label: string; helper?: string; children: React.ReactNode }> = ({
+const FieldLabel: React.FC<{
+  label: string;
+  helper?: string;
+  error?: string;
+  children: React.ReactNode;
+}> = ({
   label,
   helper,
+  error,
   children,
 }) => (
   <label className="block">
     <div className="relative pt-2">
-      <span className="absolute left-5 top-2 z-10 -translate-y-1/2 bg-white px-2 text-sm font-medium text-brand-dark">
+      <span
+        className={`absolute left-5 top-2 z-10 -translate-y-1/2 bg-white px-2 text-sm font-medium ${
+          error ? 'text-red-700' : 'text-brand-dark'
+        }`}
+      >
         {label}
       </span>
       {children}
     </div>
     {helper && <span className="block mt-1.5 text-xs text-brand-dark/35">{helper}</span>}
+    {error && <span className="block mt-1 text-xs font-semibold text-red-600">{error}</span>}
   </label>
 );
 
@@ -304,6 +325,8 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
   const [submitMessage, setSubmitMessage] = useState('');
   const [confirmationKind, setConfirmationKind] = useState<ConfirmationKind>(null);
   const [hasConfirmedExistingUserConflict, setHasConfirmedExistingUserConflict] = useState(false);
+  const [hasSubmitAttempted, setHasSubmitAttempted] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Partial<Record<ValidationField, boolean>>>({});
 
   const selectedCity = formValues.city === 'Lainnya' ? formValues.cityOther.trim() : formValues.city;
   const selectedCategory =
@@ -323,7 +346,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
       formValues.condition &&
       formValues.description.trim()
   );
-  const mediaComplete = itemPhotos.length >= 3;
+  const mediaComplete = itemPhotos.length >= minItemPhotoCount;
   const listingComplete = Boolean(
     (!isPreLoved || formValues.buyPrice.trim()) && (!isRental || formValues.rentPrice.trim())
   );
@@ -332,6 +355,83 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
   const shouldShowListingSection = shouldShowMediaSection && mediaComplete;
   const formComplete = personalComplete && clothingComplete && mediaComplete && listingComplete;
   const isSubmitting = submitStatus === 'submitting';
+  const validationErrors: Partial<Record<ValidationField, string>> = {
+    userMode: !userMode ? 'Pilih salah satu opsi terlebih dahulu.' : '',
+    phoneLookup:
+      userMode === 'existing' && lookupStatus !== 'found'
+        ? phoneLookup
+          ? ''
+          : 'Masukkan nomor WhatsApp terlebih dahulu.'
+        : '',
+    fullName: shouldShowPersonalFields && !formValues.fullName.trim() ? 'Nama lengkap wajib diisi.' : '',
+    whatsapp: shouldShowPersonalFields && !formValues.whatsapp.trim() ? 'Nomor WhatsApp wajib diisi.' : '',
+    city: shouldShowPersonalFields && !formValues.city ? 'Pilih kota domisili.' : '',
+    cityOther:
+      shouldShowPersonalFields && formValues.city === 'Lainnya' && !formValues.cityOther.trim()
+        ? 'Domisili lainnya wajib diisi.'
+        : '',
+    itemName: shouldShowClothingSection && !formValues.itemName.trim() ? 'Nama item wajib diisi.' : '',
+    categoryGender:
+      shouldShowClothingSection && !formValues.categoryGender ? 'Pilih kategori gender.' : '',
+    category: shouldShowClothingSection && !formValues.category ? 'Pilih kategori.' : '',
+    categoryOther:
+      shouldShowClothingSection && formValues.category === 'Yang lain' && !formValues.categoryOther.trim()
+        ? 'Kategori lainnya wajib diisi.'
+        : '',
+    brandStatus: shouldShowClothingSection && !formValues.brandStatus ? 'Pilih status brand.' : '',
+    brand:
+      shouldShowClothingSection && isBranded && !formValues.brand.trim() ? 'Brand wajib diisi.' : '',
+    size: shouldShowClothingSection && !formValues.size.trim() ? 'Ukuran wajib diisi.' : '',
+    condition: shouldShowClothingSection && !formValues.condition ? 'Pilih kondisi item.' : '',
+    description:
+      shouldShowClothingSection && !formValues.description.trim() ? 'Deskripsi wajib diisi.' : '',
+    itemPhotos:
+      shouldShowMediaSection && itemPhotos.length < minItemPhotoCount
+        ? `Tambahkan minimal ${minItemPhotoCount} foto item.`
+        : '',
+    buyPrice: shouldShowListingSection && isPreLoved && !formValues.buyPrice.trim() ? 'Harga wajib diisi.' : '',
+    rentPrice: shouldShowListingSection && isRental && !formValues.rentPrice.trim() ? 'Harga sewa wajib diisi.' : '',
+  };
+
+  const markFieldTouched = (field: ValidationField) => {
+    setTouchedFields((currentFields) => ({ ...currentFields, [field]: true }));
+  };
+
+  const getVisibleError = (field: ValidationField) =>
+    (hasSubmitAttempted || touchedFields[field]) && validationErrors[field]
+      ? validationErrors[field]
+      : '';
+
+  const getControlClass = (baseClass: string, field: ValidationField) =>
+    `${baseClass} ${
+      getVisibleError(field)
+        ? '!border-red-400 !bg-red-50/30 focus:!border-red-500'
+        : ''
+    }`;
+
+  const getIncompleteFormMessage = () => {
+    if (!userMode) {
+      return 'Pilih apakah kamu sudah pernah upload atau user baru terlebih dahulu.';
+    }
+
+    if (userMode === 'existing' && lookupStatus !== 'found') {
+      return 'Cek nomor WhatsApp sampai data ditemukan, atau pilih user baru.';
+    }
+
+    if (!personalComplete) {
+      return 'Lengkapi informasi pribadi terlebih dahulu.';
+    }
+
+    if (!clothingComplete) {
+      return 'Lengkapi informasi pakaian terlebih dahulu.';
+    }
+
+    if (!mediaComplete) {
+      return `Tambahkan minimal ${minItemPhotoCount} foto item.`;
+    }
+
+    return 'Lengkapi informasi harga yang aktif terlebih dahulu.';
+  };
 
   const resetLookup = () => {
     setPhoneLookup('');
@@ -374,6 +474,8 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
     setSubmitMessage('');
     setConfirmationKind(null);
     setHasConfirmedExistingUserConflict(false);
+    setHasSubmitAttempted(false);
+    setTouchedFields({});
     onClose();
   }, [brandProofs, itemPhotos, onClose]);
 
@@ -388,14 +490,37 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
       }
     };
 
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [closeDrawer, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalBodyPosition = document.body.style.position;
+    const originalBodyTop = document.body.style.top;
+    const originalBodyWidth = document.body.style.width;
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.body.style.position = originalBodyPosition;
+      document.body.style.top = originalBodyTop;
+      document.body.style.width = originalBodyWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
 
   if (!isOpen) {
     return null;
@@ -480,6 +605,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
   };
 
   const addItemPhotos = (files: FileList | null) => {
+    markFieldTouched('itemPhotos');
     const validationMessage = validateUploadFiles(files);
 
     if (validationMessage) {
@@ -570,6 +696,9 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
 
   const performUpload = async () => {
     if (!formComplete || isSubmitting) {
+      setHasSubmitAttempted(true);
+      setSubmitStatus('error');
+      setSubmitMessage(getIncompleteFormMessage());
       return;
     }
 
@@ -591,12 +720,19 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
   };
 
   const handleSubmit = async () => {
-    if (!formComplete || isSubmitting) {
+    if (isSubmitting) {
       return;
     }
 
+    setHasSubmitAttempted(true);
     setSubmitStatus('idle');
     setSubmitMessage('');
+
+    if (!formComplete) {
+      setSubmitStatus('error');
+      setSubmitMessage(getIncompleteFormMessage());
+      return;
+    }
 
     if (userMode === 'new' && !hasConfirmedExistingUserConflict) {
       try {
@@ -616,7 +752,11 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
     setConfirmationKind('upload');
   };
 
-  const renderPersonalSection = () => (
+  const renderPersonalSection = () => {
+    const userModeError = getVisibleError('userMode');
+    const phoneLookupError = getVisibleError('phoneLookup');
+
+    return (
     <section className="space-y-5">
       <div>
         <h2 className="text-lg font-bold text-brand-dark">{copy.sections.personal}</h2>
@@ -639,7 +779,9 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
               className={`min-h-24 rounded-2xl border px-5 py-4 text-left transition-colors ${
                 isSelected
                   ? 'border-[#C99547] bg-[#FCF8F2] text-brand-dark'
-                  : 'border-brand-dark/10 bg-white text-brand-dark hover:border-brand-gold'
+                  : userModeError
+                    ? 'border-red-400 bg-red-50/40 text-brand-dark'
+                    : 'border-brand-dark/10 bg-white text-brand-dark hover:border-brand-gold'
               }`}
             >
               <span className="flex items-center justify-between gap-3">
@@ -651,9 +793,14 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
           );
         })}
       </div>
+      {userModeError && <p className="text-xs font-semibold text-red-600">{userModeError}</p>}
 
       {userMode === 'existing' && (
-        <div className="space-y-3 rounded-2xl border border-brand-dark/10 bg-white p-4">
+        <div
+          className={`space-y-3 rounded-2xl border bg-white p-4 ${
+            phoneLookupError ? 'border-red-400' : 'border-brand-dark/10'
+          }`}
+        >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
             <div className="min-w-0 flex-1">
               <div className="relative pt-2">
@@ -661,11 +808,12 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
                   {copy.userMode.lookupLabel}
                 </span>
                 <input
-                  className={inputClass}
+                  className={getControlClass(inputClass, 'phoneLookup')}
                   value={phoneLookup}
                   inputMode="tel"
                   maxLength={14}
                   placeholder={copy.userMode.lookupPlaceholder}
+                  onBlur={() => markFieldTouched('phoneLookup')}
                   onChange={(event) => updatePhoneLookup(event.target.value)}
                 />
               </div>
@@ -684,42 +832,58 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
           {lookupMessage && (
             <p
               className={`text-xs leading-relaxed ${
-                lookupStatus === 'found' ? 'text-green-700' : 'text-brand-dark/55'
+                lookupStatus === 'found' ? 'text-green-700' : 'text-red-600'
               }`}
             >
               {lookupMessage}
             </p>
           )}
+          {phoneLookupError && <p className="text-xs font-semibold text-red-600">{phoneLookupError}</p>}
         </div>
       )}
 
       {shouldShowPersonalFields && (
         <>
-            <FieldLabel label={copy.fields.fullName.label} helper={copy.fields.fullName.helper}>
+            <FieldLabel
+              label={copy.fields.fullName.label}
+              helper={copy.fields.fullName.helper}
+              error={getVisibleError('fullName')}
+            >
               <input
-                className={inputClass}
+                className={getControlClass(inputClass, 'fullName')}
                 placeholder={copy.fields.fullName.placeholder}
                 value={formValues.fullName}
                 disabled={userMode === 'existing'}
+                onBlur={() => markFieldTouched('fullName')}
                 onChange={(event) => updateField('fullName', event.target.value)}
             />
           </FieldLabel>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <FieldLabel label={copy.fields.whatsapp.label} helper={copy.fields.whatsapp.helper}>
+            <FieldLabel
+              label={copy.fields.whatsapp.label}
+              helper={copy.fields.whatsapp.helper}
+              error={getVisibleError('whatsapp')}
+            >
               <input
-                className={inputClass}
+                className={getControlClass(inputClass, 'whatsapp')}
                 placeholder={copy.fields.whatsapp.placeholder}
                 value={formValues.whatsapp}
                 disabled={userMode === 'existing'}
                 inputMode="tel"
+                onBlur={() => markFieldTouched('whatsapp')}
                 onChange={(event) => updateField('whatsapp', event.target.value)}
               />
             </FieldLabel>
-            <FieldLabel label={copy.fields.city.label} helper={copy.fields.city.helper}>
+            <FieldLabel
+              label={copy.fields.city.label}
+              helper={copy.fields.city.helper}
+              error={getVisibleError('city')}
+            >
               <select
-                className={selectClass}
+                className={getControlClass(selectClass, 'city')}
                 value={formValues.city}
                 disabled={userMode === 'existing'}
+                onBlur={() => markFieldTouched('city')}
                 onChange={(event) => {
                   updateField('city', event.target.value);
                   if (event.target.value !== 'Lainnya') {
@@ -735,12 +899,13 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
             </FieldLabel>
           </div>
           {formValues.city === 'Lainnya' && (
-            <FieldLabel label="Domisili lainnya*">
+            <FieldLabel label="Domisili lainnya*" error={getVisibleError('cityOther')}>
               <input
-                className={inputClass}
+                className={getControlClass(inputClass, 'cityOther')}
                 placeholder="Masukkan kota domisili"
                 value={formValues.cityOther}
                 disabled={userMode === 'existing'}
+                onBlur={() => markFieldTouched('cityOther')}
                 onChange={(event) => updateField('cityOther', event.target.value)}
               />
             </FieldLabel>
@@ -749,22 +914,29 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
       )}
     </section>
   );
+  };
 
   const renderClothingSection = () => (
     <section className="space-y-5">
       <h2 className="text-lg font-bold text-brand-dark">{copy.sections.clothing}</h2>
-      <FieldLabel label={copy.fields.itemName.label} helper={copy.fields.itemName.helper}>
+      <FieldLabel
+        label={copy.fields.itemName.label}
+        helper={copy.fields.itemName.helper}
+        error={getVisibleError('itemName')}
+      >
         <input
-          className={inputClass}
+          className={getControlClass(inputClass, 'itemName')}
           placeholder={copy.fields.itemName.placeholder}
           value={formValues.itemName}
+          onBlur={() => markFieldTouched('itemName')}
           onChange={(event) => updateField('itemName', event.target.value)}
         />
       </FieldLabel>
-      <FieldLabel label="Kategori gender*">
+      <FieldLabel label="Kategori gender*" error={getVisibleError('categoryGender')}>
         <select
-          className={selectClass}
+          className={getControlClass(selectClass, 'categoryGender')}
           value={formValues.categoryGender}
+          onBlur={() => markFieldTouched('categoryGender')}
           onChange={(event) => updateField('categoryGender', event.target.value)}
         >
           <option value="" disabled>Pilih kategori gender</option>
@@ -776,10 +948,11 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
         </select>
       </FieldLabel>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <FieldLabel label={copy.fields.category.label}>
+        <FieldLabel label={copy.fields.category.label} error={getVisibleError('category')}>
           <select
-            className={selectClass}
+            className={getControlClass(selectClass, 'category')}
             value={formValues.category}
+            onBlur={() => markFieldTouched('category')}
             onChange={(event) => {
               updateField('category', event.target.value);
               if (event.target.value !== 'Yang lain') {
@@ -793,10 +966,11 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
             ))}
           </select>
         </FieldLabel>
-        <FieldLabel label={copy.fields.brandStatus.label}>
+        <FieldLabel label={copy.fields.brandStatus.label} error={getVisibleError('brandStatus')}>
           <select
-            className={selectClass}
+            className={getControlClass(selectClass, 'brandStatus')}
             value={formValues.brandStatus}
+            onBlur={() => markFieldTouched('brandStatus')}
             onChange={(event) => {
               updateField('brandStatus', event.target.value);
               if (event.target.value === 'false') {
@@ -815,38 +989,46 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
         </FieldLabel>
       </div>
       {formValues.category === 'Yang lain' && (
-        <FieldLabel label="Kategori lainnya*">
+        <FieldLabel label="Kategori lainnya*" error={getVisibleError('categoryOther')}>
           <input
-            className={inputClass}
+            className={getControlClass(inputClass, 'categoryOther')}
             placeholder="Masukkan kategori lainnya"
             value={formValues.categoryOther}
+            onBlur={() => markFieldTouched('categoryOther')}
             onChange={(event) => updateField('categoryOther', event.target.value)}
           />
         </FieldLabel>
       )}
       {isBranded && (
-        <FieldLabel label={copy.fields.brand.label}>
+        <FieldLabel label={copy.fields.brand.label} error={getVisibleError('brand')}>
           <input
-            className={inputClass}
+            className={getControlClass(inputClass, 'brand')}
             placeholder={copy.fields.brand.placeholder}
             value={formValues.brand}
+            onBlur={() => markFieldTouched('brand')}
             onChange={(event) => updateField('brand', event.target.value)}
           />
         </FieldLabel>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <FieldLabel label={copy.fields.size.label} helper={copy.fields.size.helper}>
+        <FieldLabel
+          label={copy.fields.size.label}
+          helper={copy.fields.size.helper}
+          error={getVisibleError('size')}
+        >
           <input
-            className={inputClass}
+            className={getControlClass(inputClass, 'size')}
             placeholder={copy.fields.size.placeholder}
             value={formValues.size}
+            onBlur={() => markFieldTouched('size')}
             onChange={(event) => updateField('size', event.target.value)}
           />
         </FieldLabel>
-        <FieldLabel label={copy.fields.condition.label}>
+        <FieldLabel label={copy.fields.condition.label} error={getVisibleError('condition')}>
           <select
-            className={selectClass}
+            className={getControlClass(selectClass, 'condition')}
             value={formValues.condition}
+            onBlur={() => markFieldTouched('condition')}
             onChange={(event) => updateField('condition', event.target.value)}
           >
             <option value="" disabled>{copy.fields.condition.placeholder}</option>
@@ -856,11 +1038,19 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
           </select>
         </FieldLabel>
       </div>
-      <FieldLabel label={copy.fields.description.label} helper={copy.fields.description.helper}>
+      <FieldLabel
+        label={copy.fields.description.label}
+        helper={copy.fields.description.helper}
+        error={getVisibleError('description')}
+      >
         <textarea
-          className="min-h-28 w-full rounded-3xl border border-brand-dark/15 bg-white px-5 py-3 text-sm text-brand-dark outline-none transition-colors placeholder:text-brand-dark/30 focus:border-brand-gold"
+          className={getControlClass(
+            'min-h-28 w-full rounded-3xl border border-brand-dark/15 bg-white px-5 py-3 text-sm text-brand-dark outline-none transition-colors placeholder:text-brand-dark/30 focus:border-brand-gold',
+            'description'
+          )}
           placeholder={copy.fields.description.placeholder}
           value={formValues.description}
+          onBlur={() => markFieldTouched('description')}
           onChange={(event) => updateField('description', event.target.value)}
         />
       </FieldLabel>
@@ -871,10 +1061,14 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
     previews: UploadPreview[],
     onAdd: (files: FileList | null) => void,
     onRemove: (id: string) => void,
-    options?: { proof?: boolean }
+    options?: { proof?: boolean; hasError?: boolean }
   ) => (
     <div className="flex flex-wrap gap-3">
-      <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-brand-dark/20 bg-white text-brand-dark/70 hover:border-brand-gold">
+      <label
+        className={`flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed bg-white text-brand-dark/70 hover:border-brand-gold ${
+          options?.hasError ? 'border-red-400' : 'border-brand-dark/20'
+        }`}
+      >
         <ImageIcon className="mb-2 h-5 w-5" />
         <span className="text-sm font-medium">{copy.media.browse}</span>
         <input
@@ -917,14 +1111,32 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
     </div>
   );
 
-  const renderMediaSection = () => (
+  const renderMediaSection = () => {
+    const missingItemPhotoCount = Math.max(0, minItemPhotoCount - itemPhotos.length);
+    const itemPhotoProgressText =
+      missingItemPhotoCount > 0
+        ? `${itemPhotos.length} dari ${minItemPhotoCount} gambar sudah ditambahkan. Tambahkan ${missingItemPhotoCount} foto lagi.`
+        : `${itemPhotos.length} dari ${minItemPhotoCount} gambar sudah ditambahkan. Foto item sudah cukup.`;
+    const itemPhotoError = getVisibleError('itemPhotos');
+
+    return (
     <section className="space-y-7">
       <div>
         <h2 className="text-lg font-bold text-brand-dark">{copy.sections.itemPhotos}</h2>
-        <p className="mb-3 text-xs text-brand-dark/40">
+        <p className="mb-2 text-xs text-brand-dark/40">
           {copy.media.itemPhotoHelper}
         </p>
-        {renderUploader(itemPhotos, addItemPhotos, removeItemPhoto)}
+        <p
+          className={`mb-3 text-xs font-semibold ${
+            missingItemPhotoCount > 0 ? 'text-red-600' : 'text-green-700'
+          }`}
+        >
+          {itemPhotoProgressText}
+        </p>
+        {itemPhotoError && <p className="mb-3 text-xs font-semibold text-red-600">{itemPhotoError}</p>}
+        {renderUploader(itemPhotos, addItemPhotos, removeItemPhoto, {
+          hasError: Boolean(itemPhotoError || missingItemPhotoCount > 0),
+        })}
       </div>
       {isBranded && (
         <div>
@@ -953,6 +1165,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
       )}
     </section>
   );
+  };
 
   const renderListingSection = () => (
     <section className="space-y-8">
@@ -964,12 +1177,13 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
           helper={copy.listing.preLoved.helper}
         />
         {isPreLoved && (
-          <FieldLabel label={copy.fields.buyPrice.label}>
+          <FieldLabel label={copy.fields.buyPrice.label} error={getVisibleError('buyPrice')}>
             <input
-              className={inputClass}
+              className={getControlClass(inputClass, 'buyPrice')}
               placeholder={copy.fields.buyPrice.placeholder}
               value={formValues.buyPrice}
               inputMode="numeric"
+              onBlur={() => markFieldTouched('buyPrice')}
               onChange={(event) => updateField('buyPrice', formatThousands(event.target.value))}
             />
           </FieldLabel>
@@ -983,12 +1197,13 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
           helper={copy.listing.rental.helper}
         />
         {isRental && (
-          <FieldLabel label={copy.fields.rentPrice.label}>
+          <FieldLabel label={copy.fields.rentPrice.label} error={getVisibleError('rentPrice')}>
             <input
-              className={inputClass}
+              className={getControlClass(inputClass, 'rentPrice')}
               placeholder={copy.fields.rentPrice.placeholder}
               value={formValues.rentPrice}
               inputMode="numeric"
+              onBlur={() => markFieldTouched('rentPrice')}
               onChange={(event) => updateField('rentPrice', formatThousands(event.target.value))}
             />
           </FieldLabel>
@@ -1180,7 +1395,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
 
             <button
               type="submit"
-              disabled={!formComplete || isSubmitting || submitStatus === 'success'}
+              disabled={isSubmitting || submitStatus === 'success'}
               className="hidden min-h-12 items-center justify-center rounded-full bg-brand-dark px-9 font-bold text-white hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
             >
               {isSubmitting ? copy.buttons.submitting : copy.buttons.submit}
@@ -1188,7 +1403,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
 
             <button
               type="submit"
-              disabled={!formComplete || isSubmitting || submitStatus === 'success'}
+              disabled={isSubmitting || submitStatus === 'success'}
               className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-brand-dark px-7 font-bold text-white hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-40 md:hidden"
             >
               {isSubmitting ? copy.buttons.submitting : copy.buttons.submit}

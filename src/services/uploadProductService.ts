@@ -39,12 +39,23 @@ const uploadFiles = async (
   files: UploadProductFile[],
   folder: string
 ): Promise<Array<AwsUploadResult & { proofKind?: ProofKind }>> => {
-  return Promise.all(
-    files.map(async (fileData) => ({
-      ...(await uploadFileDirectToAws({ file: fileData.file, folder })),
-      proofKind: fileData.proofKind,
-    }))
-  );
+  const uploadedFiles: Array<AwsUploadResult & { proofKind?: ProofKind }> = [];
+
+  for (const [index, fileData] of files.entries()) {
+    try {
+      uploadedFiles.push({
+        ...(await uploadFileDirectToAws({ file: fileData.file, folder })),
+        proofKind: fileData.proofKind,
+      });
+    } catch (error) {
+      throw new Error(
+        `File ke-${index + 1} gagal. ${error instanceof Error ? error.message : 'Request gagal.'}`,
+        { cause: error }
+      );
+    }
+  }
+
+  return uploadedFiles;
 };
 
 const withStepError = async <T>(step: string, action: () => Promise<T>) => {
@@ -66,12 +77,18 @@ export const submitUploadProduct = async (formData: UploadProductFormData) => {
     })
   );
   const submissionFolder = `ijol-mvp/${Date.now()}-${crypto.randomUUID()}`;
-  const [itemPhotos, brandProofs] = await withStepError('Gagal upload gambar', () =>
-    Promise.all([
-      uploadFiles(formData.itemPhotos, `${submissionFolder}/items`),
-      uploadFiles(formData.brandProofs, `${submissionFolder}/brand-proofs`),
-    ])
-  );
+  const { itemPhotos, brandProofs } = await withStepError('Gagal upload gambar', async () => {
+    const uploadedItemPhotos = await uploadFiles(formData.itemPhotos, `${submissionFolder}/items`);
+    const uploadedBrandProofs = await uploadFiles(
+      formData.brandProofs,
+      `${submissionFolder}/brand-proofs`
+    );
+
+    return {
+      itemPhotos: uploadedItemPhotos,
+      brandProofs: uploadedBrandProofs,
+    };
+  });
 
   const item = { id: crypto.randomUUID() };
 

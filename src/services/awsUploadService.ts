@@ -21,11 +21,23 @@ type UploadFileParams = {
   folder: string;
 };
 
+const formatFileSize = (bytes: number) => {
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const getFileDebugLabel = (file: File) =>
+  `${file.name || 'foto'} (${file.type || 'tanpa tipe'}, ${formatFileSize(file.size)})`;
+
 export const uploadFileDirectToAws = async ({
   file,
   folder,
 }: UploadFileParams): Promise<AwsUploadResult> => {
   let presignedUpload: PresignedUploadResponse;
+  const fileLabel = getFileDebugLabel(file);
 
   try {
     presignedUpload = await invokeSupabaseFunction<PresignedUploadResponse>(
@@ -39,7 +51,7 @@ export const uploadFileDirectToAws = async ({
     );
   } catch (error) {
     throw new Error(
-      `Gagal meminta upload URL untuk ${file.name}: ${
+      `Gagal meminta upload URL. Detail: ${fileLabel}. ${
         error instanceof Error ? error.message : 'Request gagal.'
       }`,
       { cause: error }
@@ -59,7 +71,7 @@ export const uploadFileDirectToAws = async ({
     });
   } catch (error) {
     throw new Error(
-      `Gagal upload ${file.name} ke AWS. Cek CORS bucket S3 dan URL bucket: ${
+      `Gagal upload ke AWS. Detail: ${fileLabel}. ${
         error instanceof Error ? error.message : 'Request gagal.'
       }`,
       { cause: error }
@@ -67,7 +79,7 @@ export const uploadFileDirectToAws = async ({
   }
 
   if (!response.ok) {
-    throw new Error(`Upload ${file.name} ke AWS gagal.`);
+    throw new Error(`Upload ke AWS gagal. Detail: ${fileLabel}. Status S3: ${response.status}.`);
   }
 
   return {

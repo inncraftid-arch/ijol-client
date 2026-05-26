@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { createWhatsAppUrl } from '../../config/contact';
 import type { Product } from '../../types';
 import { IconLocation, IconProfile } from '../icons/ProductIcons';
 
@@ -14,7 +15,38 @@ const importantInfo =
 type ProductAction = {
   label: string;
   className: string;
+  href?: string;
 };
+
+const getProductSummary = (product: Product) =>
+  [
+    `Nama item: ${product.name}`,
+    `Kode item: ${product.label}`,
+    `Pemilik: ${product.owner.name}`,
+    `Lokasi: ${product.location}`,
+    `Size: ${product.sizes[0]}`,
+    `Kondisi: ${product.condition.split('(')[0].trim()}`,
+  ].join('\n');
+
+const createBuyMessage = (product: Product) =>
+  [
+    'Halo Admin IJOL, saya tertarik untuk beli baju ini.',
+    '',
+    getProductSummary(product),
+    `Harga beli: ${product.buyPrice || '-'}`,
+    '',
+    'Mohon dibantu untuk proses pembeliannya ya.',
+  ].join('\n');
+
+const createRentMessage = (product: Product) =>
+  [
+    'Halo Admin IJOL, saya tertarik untuk sewa baju ini.',
+    '',
+    getProductSummary(product),
+    `Harga sewa: ${product.rentPrice || '-'}`,
+    '',
+    'Mohon dibantu untuk info ketersediaan dan proses sewanya ya.',
+  ].join('\n');
 
 const getActionsLayout = (product: Product) => {
   if (product.canRent && product.canBuy) {
@@ -45,8 +77,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
   const actions: ProductAction[] = product
     ? [
-        product.canRent ? { label: 'Sewa', className: 'border border-[#C99547] text-[#C99547] bg-white hover:bg-[#FCF8F2]' } : null,
-        product.canBuy ? { label: 'Beli Baju', className: 'bg-[#C99547] text-white hover:bg-[#B38036]' } : null,
+        product.canRent ? {
+          label: 'Sewa',
+          className: 'border border-[#C99547] text-[#C99547] bg-white hover:bg-[#FCF8F2]',
+          href: createWhatsAppUrl(createRentMessage(product)),
+        } : null,
+        product.canBuy ? {
+          label: 'Beli Baju',
+          className: 'bg-[#C99547] text-white hover:bg-[#B38036]',
+          href: createWhatsAppUrl(createBuyMessage(product)),
+        } : null,
         product.canSwap !== false ? { label: 'Tukar Baju', className: 'bg-brand-dark text-white hover:bg-black/90' } : null,
       ].filter((action): action is ProductAction => Boolean(action))
     : [];
@@ -62,14 +102,37 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
       }
     };
 
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [onClose, product]);
+
+  useEffect(() => {
+    if (!product) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalBodyPosition = document.body.style.position;
+    const originalBodyTop = document.body.style.top;
+    const originalBodyWidth = document.body.style.width;
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.body.style.position = originalBodyPosition;
+      document.body.style.top = originalBodyTop;
+      document.body.style.width = originalBodyWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [product]);
 
   if (!product) {
     return null;
@@ -93,7 +156,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center md:p-8">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center overscroll-contain md:items-center md:p-8">
       <button
         type="button"
         className="absolute inset-0 bg-black/35"
@@ -106,7 +169,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
         role="dialog"
         aria-modal="true"
         aria-label={`Detail produk ${product.name}`}
-        className="relative z-10 w-full h-[100dvh] md:h-auto md:max-h-[92vh] md:max-w-[1360px] bg-white md:rounded-[2rem] overflow-y-auto md:overflow-hidden shadow-2xl"
+        className="relative z-10 h-[100dvh] w-full overflow-y-auto overscroll-contain bg-white shadow-2xl md:h-auto md:max-h-[92vh] md:max-w-[1360px] md:overflow-hidden md:rounded-[2rem]"
       >
         <div className="sticky top-0 z-20 md:hidden flex justify-center bg-white pt-2 pb-1">
           <div className="h-1 w-20 rounded-full bg-brand-dark/10" />
@@ -206,15 +269,27 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
             <div
               className={`grid gap-3 mb-8 ${getActionsLayout(product)}`}
             >
-              {actions.map((action) => (
-                <button
-                  key={action.label}
-                  type="button"
-                  className={`min-h-12 rounded-full font-bold text-sm md:text-base transition-colors ${action.className}`}
-                >
-                  {action.label}
-                </button>
-              ))}
+              {actions.map((action) =>
+                action.href ? (
+                  <a
+                    key={action.label}
+                    href={action.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`inline-flex min-h-12 items-center justify-center rounded-full font-bold text-sm transition-colors md:text-base ${action.className}`}
+                  >
+                    {action.label}
+                  </a>
+                ) : (
+                  <button
+                    key={action.label}
+                    type="button"
+                    className={`min-h-12 rounded-full font-bold text-sm md:text-base transition-colors ${action.className}`}
+                  >
+                    {action.label}
+                  </button>
+                )
+              )}
             </div>
 
             {product.canBuy && (

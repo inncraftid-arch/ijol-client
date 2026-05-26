@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Link } from 'react-router';
 import { contactEmailUrl } from '../../config/contact';
@@ -7,6 +7,31 @@ import { footerPolicies, type FooterPolicyKey } from './footerPolicyContent';
 export const Footer: React.FC = () => {
   const [activePolicy, setActivePolicy] = useState<FooterPolicyKey | null>(null);
   const policy = activePolicy ? footerPolicies[activePolicy] : null;
+
+  useEffect(() => {
+    if (!activePolicy) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalBodyPosition = document.body.style.position;
+    const originalBodyTop = document.body.style.top;
+    const originalBodyWidth = document.body.style.width;
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.body.style.position = originalBodyPosition;
+      document.body.style.top = originalBodyTop;
+      document.body.style.width = originalBodyWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [activePolicy]);
 
   return (
     <div className="bg-white">
@@ -68,12 +93,12 @@ export const Footer: React.FC = () => {
 
       {policy && (
         <div
-          className="fixed inset-0 z-[160] flex justify-end bg-black/45 backdrop-blur-[2px]"
+          className="fixed inset-0 z-[160] flex justify-end overscroll-contain bg-black/45 backdrop-blur-[2px]"
           role="dialog"
           aria-modal="true"
           aria-labelledby="footer-policy-title"
         >
-          <aside className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-white text-brand-dark shadow-2xl md:max-w-[720px] md:border-l md:border-brand-dark/10">
+          <aside className="relative flex h-[100dvh] w-full flex-col overflow-hidden overscroll-contain bg-white text-brand-dark shadow-2xl md:max-w-[720px] md:border-l md:border-brand-dark/10">
             <button
               type="button"
               onClick={() => setActivePolicy(null)}
@@ -83,7 +108,7 @@ export const Footer: React.FC = () => {
               <X size={18} />
             </button>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-28 pt-9 md:px-10 md:pb-32 md:pt-10">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-28 pt-9 md:px-10 md:pb-32 md:pt-10">
               <h2
                 id="footer-policy-title"
                 className="font-serif text-2xl font-bold leading-tight tracking-wide text-brand-dark md:text-3xl"

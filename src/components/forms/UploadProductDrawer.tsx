@@ -471,7 +471,7 @@ export const UploadProductDrawer: React.FC<UploadProductDrawerProps> = ({ isOpen
       <div>
         <h2 className="text-lg font-bold text-brand-dark">Foto Item*</h2>
         <p className="mb-3 text-xs text-brand-dark/40">
-          Upload minimal 3 foto: tampak depan, tampak belakang, dan detail kondisi. Maksimal 7 foto, max 5MB per foto.
+          Upload minimal 3 foto: tampak depan, tampak belakang, dan detail kondisi. Maksimal 7 foto, max 10MB per foto.
         </p>
         {renderUploader(itemPhotos, addItemPhotos, removeItemPhoto)}
       </div>
