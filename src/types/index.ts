@@ -1,5 +1,6 @@
 export interface Product {
   id: string;
+  userId?: string;
   name: string;
   label: string;
   isNonBranded: boolean;

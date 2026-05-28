@@ -29,8 +29,10 @@ type ProductPhotoRecord = {
   sort_order: number | null;
 };
 
-type ProductRecord = {
+export type ProductRecord = {
   id: string;
+  item_code?: string | null;
+  user_id: string | null;
   name: string | null;
   category_gender: Product['category'] | null;
   category: string | null;
@@ -43,6 +45,8 @@ type ProductRecord = {
   buy_price: number | null;
   can_rent: boolean | null;
   rent_price: number | null;
+  status?: string | null;
+  availability_status?: string | null;
   users?: ProductUserRecord | ProductUserRecord[] | null;
   item_photos?: ProductPhotoRecord[] | null;
 };
@@ -65,7 +69,7 @@ const getEmbeddedUser = (record: ProductRecord) => {
   return record.users || null;
 };
 
-const mapProductRecord = (record: ProductRecord): Product => {
+export const mapProductRecord = (record: ProductRecord): Product => {
   const sortedPhotos = [...(record.item_photos || [])]
     .filter((photo) => Boolean(photo.public_url))
     .sort((firstPhoto, secondPhoto) => (firstPhoto.sort_order || 0) - (secondPhoto.sort_order || 0));
@@ -74,8 +78,9 @@ const mapProductRecord = (record: ProductRecord): Product => {
 
   return {
     id: record.id,
+    userId: record.user_id || undefined,
     name: record.name || 'Item IJOL',
-    label: record.id.slice(0, 6).toUpperCase(),
+    label: record.item_code || record.id.slice(0, 6).toUpperCase(),
     isNonBranded: !record.is_branded,
     image: images[0] || fallbackImage,
     images: images.length ? images : [fallbackImage],
@@ -104,7 +109,7 @@ export async function fetchCollections({
   search = '',
 }: FetchCollectionsParams): Promise<FetchCollectionsResult> {
   const records = await supabaseRestRequest<ProductRecord[]>(
-    `${clientEnv.itemsTable}?select=id,name,category_gender,category,is_branded,brand,size,condition,description,can_buy,buy_price,can_rent,rent_price,users!items_user_id_fkey(full_name,city),item_photos!item_photos_item_id_fkey(public_url,sort_order)&status=eq.approved&order=created_at.desc&limit=300`
+    `${clientEnv.itemsTable}?select=id,item_code,user_id,name,category_gender,category,is_branded,brand,size,condition,description,can_buy,buy_price,can_rent,rent_price,availability_status,users!items_user_id_fkey(full_name,city),item_photos!item_photos_item_id_fkey(public_url,sort_order)&status=eq.approved&availability_status=eq.available&order=created_at.desc&limit=300`
   );
   const normalizedSearch = search.trim().toLowerCase();
   const products = records.map(mapProductRecord);

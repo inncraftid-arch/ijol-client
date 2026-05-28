@@ -64,6 +64,22 @@ export const supabaseRestRequest = async <T>(
   return parseResponse<T>(response);
 };
 
+export const supabaseRpcRequest = async <T>(
+  functionName: string,
+  body: unknown,
+  { authToken, headers }: Pick<RequestOptions, 'authToken' | 'headers'> = {}
+): Promise<T> => {
+  assertSupabaseEnv();
+
+  const response = await fetch(`${clientEnv.supabaseUrl}/rest/v1/rpc/${functionName}`, {
+    method: 'POST',
+    headers: buildHeaders(headers, authToken),
+    body: JSON.stringify(body),
+  });
+
+  return parseResponse<T>(response);
+};
+
 export const supabaseAuthRequest = async <T>(
   path: string,
   { method = 'GET', body, headers, authToken }: RequestOptions = {}

@@ -10,6 +10,7 @@ export type AdminItemBrandProof = {
 
 export type AdminItem = {
   id: string;
+  itemCode?: string;
   name: string;
   categoryGender: 'male' | 'female' | 'unisex';
   category: string;
@@ -51,6 +52,7 @@ type AdminItemBrandProofRecord = {
 
 type AdminItemRecord = {
   id: string;
+  item_code?: string | null;
   name: string | null;
   category_gender: AdminItem['categoryGender'] | null;
   category: string | null;
@@ -90,6 +92,7 @@ const mapAdminItemRecord = (record: AdminItemRecord): AdminItem => {
 
   return {
     id: record.id,
+    itemCode: record.item_code || undefined,
     name: record.name || 'Item IJOL',
     categoryGender: record.category_gender || 'unisex',
     category: record.category || '-',
@@ -121,7 +124,7 @@ const mapAdminItemRecord = (record: AdminItemRecord): AdminItem => {
 
 export const fetchAdminItems = async (accessToken: string) => {
   const records = await supabaseRestRequest<AdminItemRecord[]>(
-    `${clientEnv.itemsTable}?select=id,name,category_gender,category,is_branded,brand,size,condition,description,status,can_buy,buy_price,can_rent,rent_price,created_at,users!items_user_id_fkey(full_name,phone,city),item_photos!item_photos_item_id_fkey(public_url,sort_order),item_brand_proofs!item_brand_proofs_item_id_fkey(public_url,proof_kind)&order=created_at.desc&limit=500`,
+    `${clientEnv.itemsTable}?select=id,item_code,name,category_gender,category,is_branded,brand,size,condition,description,status,can_buy,buy_price,can_rent,rent_price,created_at,users!items_user_id_fkey(full_name,phone,city),item_photos!item_photos_item_id_fkey(public_url,sort_order),item_brand_proofs!item_brand_proofs_item_id_fkey(public_url,proof_kind)&order=created_at.desc&limit=500`,
     { authToken: accessToken }
   );
 

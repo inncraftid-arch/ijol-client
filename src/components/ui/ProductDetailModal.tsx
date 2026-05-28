@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { createWhatsAppUrl } from '../../config/contact';
 import type { Product } from '../../types';
+import { SwapRequestDrawer } from '../forms/SwapRequestDrawer';
 import { IconLocation, IconProfile } from '../icons/ProductIcons';
 
 interface ProductDetailModalProps {
@@ -9,43 +10,45 @@ interface ProductDetailModalProps {
   onClose: () => void;
 }
 
-const importantInfo =
-  'Apabila kamu ingin membeli item ini (Tanpa Tukar), kamu perlu mengirim minimal 1 pakaian tidak terpakai ke IJOL Fiber - apapun kondisinya. Ini memastikan satu pakaian masuk, satu pakaian keluar.';
-
 type ProductAction = {
   label: string;
   className: string;
   href?: string;
+  onClick?: () => void;
 };
-
-const getProductSummary = (product: Product) =>
-  [
-    `Nama item: ${product.name}`,
-    `Kode item: ${product.label}`,
-    `Pemilik: ${product.owner.name}`,
-    `Lokasi: ${product.location}`,
-    `Size: ${product.sizes[0]}`,
-    `Kondisi: ${product.condition.split('(')[0].trim()}`,
-  ].join('\n');
 
 const createBuyMessage = (product: Product) =>
   [
-    'Halo Admin IJOL, saya tertarik untuk beli baju ini.',
+    'Halo IJOL!',
     '',
-    getProductSummary(product),
-    `Harga beli: ${product.buyPrice || '-'}`,
+    'Saya ingin membeli item berikut:',
     '',
-    'Mohon dibantu untuk proses pembeliannya ya.',
+    `Kode item: ${product.label}`,
+    `Nama item: ${product.name}`,
+    'Kota saya: [kota]',
+    '',
+    'Nama: [nama lengkap]',
+    'Nomor WA: [nomor ini]',
+    '',
+    'Mohon info langkah selanjutnya ya. Terima kasih!',
   ].join('\n');
 
 const createRentMessage = (product: Product) =>
   [
-    'Halo Admin IJOL, saya tertarik untuk sewa baju ini.',
+    'Halo IJOL!',
     '',
-    getProductSummary(product),
-    `Harga sewa: ${product.rentPrice || '-'}`,
+    'Saya ingin menyewa item berikut:',
     '',
-    'Mohon dibantu untuk info ketersediaan dan proses sewanya ya.',
+    `Kode item: ${product.label}`,
+    `Nama item: ${product.name}`,
+    'Tanggal mulai sewa: [tanggal]',
+    'Tanggal kembali: [tanggal]',
+    'Kota saya: [kota]',
+    '',
+    'Nama: [nama lengkap]',
+    'Nomor WA: [nomor ini]',
+    '',
+    'Mohon info ketersediaan dan biaya sewanya. Terima kasih!',
   ].join('\n');
 
 const getActionsLayout = (product: Product) => {
@@ -66,6 +69,8 @@ const getActionsLayout = (product: Product) => {
 
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClose }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isSwapDrawerOpen, setIsSwapDrawerOpen] = useState(false);
+  const [isSwapSuccessOpen, setIsSwapSuccessOpen] = useState(false);
 
   const images = useMemo(() => {
     if (!product) {
@@ -75,21 +80,39 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
     return product.images?.length ? product.images : [product.image];
   }, [product]);
 
-  const actions: ProductAction[] = product
-    ? [
-        product.canRent ? {
-          label: 'Sewa',
-          className: 'border border-[#C99547] text-[#C99547] bg-white hover:bg-[#FCF8F2]',
-          href: createWhatsAppUrl(createRentMessage(product)),
-        } : null,
-        product.canBuy ? {
-          label: 'Beli Baju',
-          className: 'bg-[#C99547] text-white hover:bg-[#B38036]',
-          href: createWhatsAppUrl(createBuyMessage(product)),
-        } : null,
-        product.canSwap !== false ? { label: 'Tukar Baju', className: 'bg-brand-dark text-white hover:bg-black/90' } : null,
-      ].filter((action): action is ProductAction => Boolean(action))
-    : [];
+  const actions: ProductAction[] = useMemo(() => {
+    if (!product) {
+      return [];
+    }
+
+    const productActions: ProductAction[] = [];
+
+    if (product.canRent) {
+      productActions.push({
+        label: 'Sewa',
+        className: 'border border-[#C99547] text-[#C99547] bg-white hover:bg-[#FCF8F2]',
+        href: createWhatsAppUrl(createRentMessage(product)),
+      });
+    }
+
+    if (product.canBuy) {
+      productActions.push({
+        label: 'Beli Baju',
+        className: 'bg-[#C99547] text-white hover:bg-[#B38036]',
+        href: createWhatsAppUrl(createBuyMessage(product)),
+      });
+    }
+
+    if (product.canSwap !== false) {
+      productActions.push({
+        label: 'Tukar Baju',
+        className: 'bg-brand-dark text-white hover:bg-black/90',
+        onClick: () => setIsSwapDrawerOpen(true),
+      });
+    }
+
+    return productActions;
+  }, [product]);
 
   useEffect(() => {
     if (!product) {
@@ -284,6 +307,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                   <button
                     key={action.label}
                     type="button"
+                    onClick={action.onClick}
                     className={`min-h-12 rounded-full font-bold text-sm md:text-base transition-colors ${action.className}`}
                   >
                     {action.label}
@@ -291,16 +315,44 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                 )
               )}
             </div>
-
-            {product.canBuy && (
-              <div className="text-brand-dark/60 text-xs md:text-base leading-relaxed">
-                <h3 className="font-bold text-brand-dark/70 mb-1">Informasi Penting:</h3>
-                <p>{importantInfo}</p>
-              </div>
-            )}
           </div>
         </div>
       </div>
+      {product && (
+        <SwapRequestDrawer
+          isOpen={isSwapDrawerOpen}
+          targetProduct={product}
+          onClose={() => setIsSwapDrawerOpen(false)}
+          onSuccess={() => setIsSwapSuccessOpen(true)}
+        />
+      )}
+      {isSwapSuccessOpen && (
+        <div className="fixed inset-0 z-[180] flex items-center justify-center bg-black/45 px-5 backdrop-blur-[1px]">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Request tukar berhasil"
+            className="w-full max-w-[620px] rounded-sm bg-white px-7 py-9 text-center shadow-2xl md:px-16 md:py-10"
+          >
+            <h2 className="font-serif text-2xl font-bold tracking-wide text-brand-dark md:text-3xl">
+              Request Tukar Berhasil!
+            </h2>
+            <p className="mx-auto mt-4 max-w-[510px] text-sm leading-relaxed text-brand-dark/70 md:text-base">
+              Terima kasih sudah mengajukan swap. Tim kami akan menghubungi pemilik item dan mengabari perkembangan request kamu via WhatsApp.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setIsSwapSuccessOpen(false);
+                onClose();
+              }}
+              className="mt-8 inline-flex min-h-12 min-w-32 items-center justify-center rounded-full border border-[#C99547] px-8 font-bold text-[#C99547] transition-colors hover:bg-[#FCF8F2]"
+            >
+              Selesai
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

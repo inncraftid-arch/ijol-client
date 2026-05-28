@@ -20,19 +20,19 @@ export const ContributionSection: React.FC = () => {
       <div className="grid grid-cols-2 gap-3 md:gap-8 mb-2 pb-6">
         <div className="flex-1 text-center bg-white border border-brand-dark/5 py-4 rounded-xl">
           <div className="text-sm text-brand-dark/60 font-medium mb-1">Donatur</div>
-          <div className="text-3xl font-bold text-[#C99547] font-serif tracking-tight">2</div>
+          <div className="text-3xl font-bold text-[#C99547] font-serif tracking-tight">1</div>
           <div className="text-xs text-brand-dark/60 mt-1">Orang</div>
         </div>
         <div className="flex-1 text-center bg-white border border-brand-dark/5 py-4 rounded-xl">
           <div className="text-sm text-brand-dark/60 font-medium mb-1">Total pcs</div>
-          <div className="text-3xl font-bold text-[#C99547] font-serif tracking-tight">40</div>
+          <div className="text-3xl font-bold text-[#C99547] font-serif tracking-tight">5</div>
           <div className="text-xs text-brand-dark/60 mt-1">Pakaian</div>
         </div>
       </div>
       
       <div className="flex items-center justify-between bg-[#F5F0EB]/60 pl-5 md:pl-8 px-5 py-2 rounded-full mb-6">
         <div>
-          <span className="text-2xl font-bold text-brand-dark">40 </span>
+          <span className="text-2xl font-bold text-brand-dark">5 </span>
           <span className="text-sm text-brand-dark/60">pcs<br/>Siap disalurkan</span>
         </div>
         <div className="w-12 h-12 bg-[#C99547] rounded-full flex items-center justify-center shrink-0">
@@ -68,19 +68,19 @@ export const ContributionSection: React.FC = () => {
       <div className="grid grid-cols-2 gap-3 md:gap-8 mb-2 pb-6">
         <div className="flex-1 text-center bg-white border border-brand-dark/5 py-4 rounded-xl">
           <div className="text-sm text-brand-dark/60 font-medium mb-1">Pengirim</div>
-          <div className="text-3xl font-bold text-brand-dark font-serif tracking-tight">1</div>
+          <div className="text-3xl font-bold text-brand-dark font-serif tracking-tight">2</div>
           <div className="text-xs text-brand-dark/60 mt-1">Orang</div>
         </div>
         <div className="flex-1 text-center bg-white border border-brand-dark/5 py-4 rounded-xl">
           <div className="text-sm text-brand-dark/60 font-medium mb-1">Total berat</div>
-          <div className="text-3xl font-bold text-brand-dark font-serif tracking-tight">4</div>
+          <div className="text-3xl font-bold text-brand-dark font-serif tracking-tight">5</div>
           <div className="text-xs text-brand-dark/60 mt-1">kg tekstil</div>
         </div>
       </div>
       
       <div className="flex items-center justify-between bg-[#F5F0EB]/60 pl-5 md:pl-8 px-5 py-2 rounded-full mb-6">
         <div>
-          <span className="text-2xl font-bold text-brand-dark">4 </span>
+          <span className="text-2xl font-bold text-brand-dark">5 </span>
           <span className="text-sm text-brand-dark/60">kg tekstil<br/>Siap diproses</span>
         </div>
         <div className="w-12 h-12 bg-brand-dark rounded-full flex items-center justify-center shrink-0">

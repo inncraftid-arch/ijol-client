@@ -1383,19 +1383,19 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 border-t border-brand-dark/10 bg-white px-6 py-4 md:px-10 md:py-6">
+          <div className="flex items-center justify-end gap-3 border-t border-brand-dark/10 bg-white px-6 py-4 md:px-10 md:py-6">
             <button
               type="button"
               onClick={closeDrawer}
               disabled={isSubmitting}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#C99547] px-7 font-bold text-[#C99547] hover:bg-[#FCF8F2]"
+              className="inline-flex min-h-12 min-w-28 items-center justify-center gap-2 rounded-full border border-[#C99547] px-7 font-bold text-[#C99547] hover:bg-[#FCF8F2]"
             >
               {copy.buttons.cancel}
             </button>
 
             <button
               type="submit"
-              disabled={isSubmitting || submitStatus === 'success'}
+              disabled={!formComplete || isSubmitting || submitStatus === 'success'}
               className="hidden min-h-12 items-center justify-center rounded-full bg-brand-dark px-9 font-bold text-white hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
             >
               {isSubmitting ? copy.buttons.submitting : copy.buttons.submit}
@@ -1403,8 +1403,8 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
 
             <button
               type="submit"
-              disabled={isSubmitting || submitStatus === 'success'}
-              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-brand-dark px-7 font-bold text-white hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-40 md:hidden"
+              disabled={!formComplete || isSubmitting || submitStatus === 'success'}
+              className="inline-flex min-h-12 min-w-36 items-center justify-center gap-2 rounded-full bg-brand-dark px-7 font-bold text-white hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-40 md:hidden"
             >
               {isSubmitting ? copy.buttons.submitting : copy.buttons.submit}
             </button>

@@ -5,6 +5,7 @@ type ClientEnv = {
   itemsTable: string;
   itemPhotosTable: string;
   itemBrandProofsTable: string;
+  swapRequestsTable: string;
   awsUploadFunction: string;
 };
 
@@ -20,6 +21,7 @@ export const clientEnv: ClientEnv = {
   itemsTable: getEnvValue('VITE_SUPABASE_ITEMS_TABLE') || 'items',
   itemPhotosTable: getEnvValue('VITE_SUPABASE_ITEM_PHOTOS_TABLE') || 'item_photos',
   itemBrandProofsTable: getEnvValue('VITE_SUPABASE_ITEM_BRAND_PROOFS_TABLE') || 'item_brand_proofs',
+  swapRequestsTable: getEnvValue('VITE_SUPABASE_SWAP_REQUESTS_TABLE') || 'swap_requests',
   awsUploadFunction: getEnvValue('VITE_SUPABASE_AWS_UPLOAD_FUNCTION') || 'create-s3-upload-url',
 };
 

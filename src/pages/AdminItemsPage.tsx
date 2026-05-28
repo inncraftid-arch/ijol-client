@@ -6,6 +6,7 @@ import {
   Image,
   LogOut,
   RefreshCw,
+  Repeat2,
   Shirt,
   X,
 } from 'lucide-react';
@@ -265,6 +266,13 @@ export const AdminItemsPage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to="/admin/swaps"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-brand-dark/15 bg-white px-4 text-sm font-bold transition-colors hover:bg-[#FCF8F2]"
+            >
+              <Repeat2 className="h-4 w-4" />
+              Request Tukar
+            </Link>
             <span className="rounded-full bg-[#FCF8F2] px-4 py-2 text-xs font-semibold text-brand-dark/70">
               {session?.user.email}
             </span>
@@ -398,6 +406,9 @@ export const AdminItemsPage: React.FC = () => {
 
                   <div className="min-w-0">
                     <h2 className="hidden text-base font-bold lg:block">{item.name}</h2>
+                    <p className="mt-1 text-xs font-bold uppercase tracking-wide text-brand-dark/40">
+                      {item.itemCode || item.id.slice(0, 6).toUpperCase()}
+                    </p>
                     <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-brand-dark/60">
                       {item.description}
                     </p>

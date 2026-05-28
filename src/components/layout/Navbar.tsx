@@ -19,6 +19,19 @@ export const Navbar: React.FC = () => {
     { label: 'Daur Ulang', to: recycleFormUrl, external: true },
   ];
 
+  React.useEffect(() => {
+    const handleOpenUploadDrawer = () => {
+      setIsMobileMenuOpen(false);
+      setIsUploadDrawerOpen(true);
+    };
+
+    window.addEventListener('ijol:open-upload-drawer', handleOpenUploadDrawer);
+
+    return () => {
+      window.removeEventListener('ijol:open-upload-drawer', handleOpenUploadDrawer);
+    };
+  }, []);
+
   const preventSameRouteReload = (
     event: React.MouseEvent<HTMLAnchorElement>,
     to: string
