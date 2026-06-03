@@ -90,7 +90,7 @@ export const uploadProductFormCopy = {
   media: {
     browse: 'Browse',
     itemPhotoHelper:
-      'Upload min. 3 foto: tampak depan, tampak belakang, dan detail kondisi. Max 10MB per foto. Format JPG/PNG.',
+      'Upload min. 3 foto: tampak depan, tampak belakang, dan detail kondisi. Max 10MB per foto. Format gambar.',
     proofHelper:
       'Opsional. Pilih tipe bukti terlebih dahulu, lalu upload label, tag, nota, atau bukti pembelian.',
     removeFile: 'Hapus file',

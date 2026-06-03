@@ -5,8 +5,10 @@ type ClientEnv = {
   itemsTable: string;
   itemPhotosTable: string;
   itemBrandProofsTable: string;
+  uploadErrorLogsTable: string;
   swapRequestsTable: string;
   awsUploadFunction: string;
+  awsUploadFolderPrefix: string;
 };
 
 const getEnvValue = (key: string) => {
@@ -21,8 +23,11 @@ export const clientEnv: ClientEnv = {
   itemsTable: getEnvValue('VITE_SUPABASE_ITEMS_TABLE') || 'items',
   itemPhotosTable: getEnvValue('VITE_SUPABASE_ITEM_PHOTOS_TABLE') || 'item_photos',
   itemBrandProofsTable: getEnvValue('VITE_SUPABASE_ITEM_BRAND_PROOFS_TABLE') || 'item_brand_proofs',
+  uploadErrorLogsTable: getEnvValue('VITE_SUPABASE_UPLOAD_ERROR_LOGS_TABLE') || 'upload_error_logs',
   swapRequestsTable: getEnvValue('VITE_SUPABASE_SWAP_REQUESTS_TABLE') || 'swap_requests',
   awsUploadFunction: getEnvValue('VITE_SUPABASE_AWS_UPLOAD_FUNCTION') || 'create-s3-upload-url',
+  awsUploadFolderPrefix:
+    getEnvValue('VITE_AWS_UPLOAD_FOLDER_PREFIX') || (import.meta.env.PROD ? 'ijol-prod' : 'ijol-dev'),
 };
 
 export const assertSupabaseEnv = () => {

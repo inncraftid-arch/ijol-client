@@ -6,9 +6,18 @@ export type SwapReviewItem = {
   name: string;
   label: string;
   image: string;
+  images: string[];
   size: string;
   condition: string;
   brandStatus: string;
+  categoryGender?: string;
+  itemCategory?: string;
+  brand?: string;
+  description?: string;
+  canBuy?: boolean;
+  buyPrice?: number | null;
+  canRent?: boolean;
+  rentPrice?: number | null;
   ownerName?: string;
   location?: string;
 };
@@ -39,9 +48,18 @@ type VerifySwapReviewResponse = {
     name: string;
     label: string;
     image: string;
+    images?: string[] | null;
     size: string;
     condition: string;
     brand_status: string;
+    category_gender?: string | null;
+    category?: string | null;
+    brand?: string | null;
+    description?: string | null;
+    can_buy?: boolean | null;
+    buy_price?: number | null;
+    can_rent?: boolean | null;
+    rent_price?: number | null;
     owner_name?: string;
     location?: string;
   };
@@ -56,9 +74,18 @@ type VerifySwapReviewResponse = {
       name: string;
       label: string;
       image: string;
+      images?: string[] | null;
       size: string;
       condition: string;
       brand_status: string;
+      category_gender?: string | null;
+      category?: string | null;
+      brand?: string | null;
+      description?: string | null;
+      can_buy?: boolean | null;
+      buy_price?: number | null;
+      can_rent?: boolean | null;
+      rent_price?: number | null;
     }>;
   }>;
 };
@@ -68,9 +95,18 @@ const mapReviewItem = (item: NonNullable<VerifySwapReviewResponse['target_item']
   name: item.name,
   label: item.label,
   image: item.image,
+  images: item.images?.length ? item.images : [item.image],
   size: item.size,
   condition: item.condition,
   brandStatus: item.brand_status,
+  categoryGender: item.category_gender || undefined,
+  itemCategory: item.category || undefined,
+  brand: item.brand || undefined,
+  description: item.description || undefined,
+  canBuy: Boolean(item.can_buy),
+  buyPrice: item.buy_price ?? null,
+  canRent: Boolean(item.can_rent),
+  rentPrice: item.rent_price ?? null,
   ownerName: item.owner_name,
   location: item.location,
 });

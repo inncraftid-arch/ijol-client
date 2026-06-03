@@ -51,7 +51,7 @@ type ValidationField = keyof FormValues | 'userMode' | 'phoneLookup' | 'itemPhot
 const maxUploadFileSizeMb = 10;
 const maxUploadFileSize = maxUploadFileSizeMb * 1024 * 1024;
 const minItemPhotoCount = 3;
-const allowedUploadContentTypes = ['image/jpeg', 'image/png'];
+const allowedUploadContentTypePrefix = 'image/';
 
 const cityOptions = [
   'Jakarta',
@@ -140,7 +140,7 @@ const validateUploadFiles = (files: FileList | null) => {
   const invalidFile = selectedFiles.find((file) => {
     const contentType = file.type.toLowerCase();
 
-    return file.size > maxUploadFileSize || !allowedUploadContentTypes.includes(contentType);
+    return file.size > maxUploadFileSize || !contentType.startsWith(allowedUploadContentTypePrefix);
   });
 
   if (!invalidFile) {
@@ -151,7 +151,7 @@ const validateUploadFiles = (files: FileList | null) => {
     return `${invalidFile.name} melebihi ${maxUploadFileSizeMb}MB. Pilih foto yang lebih kecil.`;
   }
 
-  return `${invalidFile.name} bukan format JPG/PNG. Ubah format foto terlebih dahulu lalu upload lagi.`;
+  return `${invalidFile.name} bukan format gambar. Ubah format foto terlebih dahulu lalu upload lagi.`;
 };
 
 const formatThousands = (value: string) => {
@@ -190,7 +190,7 @@ const getUserFacingErrorMessage = (error: unknown) => {
 
     return detail
       ? `Gagal upload gambar. Detail: ${detail} Coba koneksi yang lebih stabil atau pilih foto yang lebih kecil.`
-      : `Gagal upload gambar. Cek koneksi internet, ukuran foto maksimal ${maxUploadFileSizeMb}MB, format JPG/PNG, atau konfigurasi CORS bucket S3.`;
+      : `Gagal upload gambar. Cek koneksi internet, ukuran foto maksimal ${maxUploadFileSizeMb}MB, format gambar, atau konfigurasi CORS bucket S3.`;
   }
 
   if (error.message.includes('Gagal menyimpan item')) {
@@ -226,14 +226,14 @@ const getUserFacingErrorMessage = (error: unknown) => {
   }
 
   if (error.message.includes('File harus berupa gambar')) {
-    return 'File harus berupa gambar JPG/PNG.';
+    return 'File harus berupa gambar.';
   }
 
   if (
     error.message.includes('Gagal upload') ||
     error.message.includes('CORS bucket S3')
   ) {
-    return 'Gagal upload gambar. Cek koneksi internet, ukuran foto, format JPG/PNG, atau konfigurasi CORS bucket S3.';
+    return 'Gagal upload gambar. Cek koneksi internet, ukuran foto, format gambar, atau konfigurasi CORS bucket S3.';
   }
 
   if (error.message.includes('Failed to fetch')) {
@@ -692,6 +692,10 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
     rentPrice: isRental ? formValues.rentPrice : undefined,
     itemPhotos: buildUploadFiles(itemPhotos),
     brandProofs: isBranded ? buildUploadFiles(brandProofs) : [],
+    debugContext: {
+      userMode,
+      lookupStatus,
+    },
   });
 
   const performUpload = async () => {
@@ -704,7 +708,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
 
     setConfirmationKind(null);
     setSubmitStatus('submitting');
-    setSubmitMessage(copy.status.submitting);
+    setSubmitMessage('');
 
     try {
       await submitUploadProduct(buildSubmissionPayload());
@@ -1073,7 +1077,7 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
         <span className="text-sm font-medium">{copy.media.browse}</span>
         <input
           type="file"
-          accept="image/jpeg,image/png"
+          accept="image/*"
           multiple
           className="hidden"
           onChange={(event) => {
@@ -1409,11 +1413,6 @@ export const UploadProductDrawerWithUserLookup: React.FC<UploadProductDrawerWith
               {isSubmitting ? copy.buttons.submitting : copy.buttons.submit}
             </button>
           </div>
-          {submitStatus === 'submitting' && submitMessage && (
-            <div className="border-t border-brand-dark/10 bg-[#FCF8F2] px-6 py-3 text-sm text-brand-dark/70 md:px-10">
-              {submitMessage}
-            </div>
-          )}
           {renderStatusCard()}
         </form>
         {renderConfirmationCard()}
