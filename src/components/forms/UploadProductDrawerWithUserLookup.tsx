@@ -176,6 +176,15 @@ const sanitizeItemName = (value: string) => value.replace(/[^a-zA-Z\s-]/g, '').r
 
 const sanitizeSize = (value: string) => value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
+const getUploadImageReplacementMessage = (message: string) => {
+  const fileIndex = message.match(/File ke-(\d+) gagal/i)?.[1];
+  const fileName = message.match(/Detail:\s*([^()]+?)\s*\(/i)?.[1]?.trim();
+  const imageLabel = fileIndex ? `Gambar ke-${fileIndex}` : 'Salah satu gambar';
+  const fileLabel = fileName ? ` (${fileName})` : '';
+
+  return `${imageLabel}${fileLabel} gagal diupload. Coba ganti gambar tersebut, lalu upload ulang.`;
+};
+
 const getUserFacingErrorMessage = (error: unknown) => {
   if (!(error instanceof Error)) {
     return 'Sistem error. Silakan coba lagi atau hubungi admin.';
@@ -186,11 +195,7 @@ const getUserFacingErrorMessage = (error: unknown) => {
   }
 
   if (error.message.includes('Gagal upload gambar')) {
-    const detail = error.message.split('Detail:')[1]?.trim();
-
-    return detail
-      ? `Gagal upload gambar. Detail: ${detail} Coba koneksi yang lebih stabil atau pilih foto yang lebih kecil.`
-      : `Gagal upload gambar. Cek koneksi internet, ukuran foto maksimal ${maxUploadFileSizeMb}MB, format gambar, atau konfigurasi CORS bucket S3.`;
+    return getUploadImageReplacementMessage(error.message);
   }
 
   if (error.message.includes('Gagal menyimpan item')) {
@@ -233,7 +238,7 @@ const getUserFacingErrorMessage = (error: unknown) => {
     error.message.includes('Gagal upload') ||
     error.message.includes('CORS bucket S3')
   ) {
-    return 'Gagal upload gambar. Cek koneksi internet, ukuran foto, format gambar, atau konfigurasi CORS bucket S3.';
+    return getUploadImageReplacementMessage(error.message);
   }
 
   if (error.message.includes('Failed to fetch')) {
