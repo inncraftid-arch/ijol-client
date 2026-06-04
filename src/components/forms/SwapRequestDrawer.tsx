@@ -329,7 +329,7 @@ export const SwapRequestDrawer: React.FC<SwapRequestDrawerProps> = ({
                 {lookupStatus === 'found' && !isLoadingItems && (
                   <div className="space-y-3">
                     <h3 className="text-base font-bold text-brand-dark">
-                      Item milikmu <span className="font-normal text-brand-dark/40">(Pilih salah satu atau beberapa)</span>
+                      Item milikmu <span className="font-normal text-brand-dark/40">(Pilih beberapa)</span>
                     </h3>
 
                     {hasApprovedItems ? (
