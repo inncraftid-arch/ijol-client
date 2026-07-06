@@ -1,5 +1,6 @@
 import { clientEnv } from '../config/env';
 import type { Product } from '../types';
+import { notifyAdmin } from './adminNotificationService';
 import { mapProductRecord, type ProductRecord } from './collectionsService';
 import { supabaseRestRequest } from './clientSupabase';
 
@@ -57,12 +58,15 @@ export const createSwapRequest = async ({
     throw new Error('Kamu tidak bisa mengajukan tukar untuk item milikmu sendiri.');
   }
 
+  const requestId = crypto.randomUUID();
+
   await supabaseRestRequest<null>(clientEnv.swapRequestsTable, {
     method: 'POST',
     headers: {
       Prefer: 'return=minimal',
     },
     body: {
+      id: requestId,
       target_item_id: targetItemId,
       target_owner_user_id: targetOwnerUserId,
       requester_user_id: requesterUserId,
@@ -71,4 +75,8 @@ export const createSwapRequest = async ({
       source: 'client-site',
     },
   });
+
+  void notifyAdmin('swap_requested');
+
+  return requestId;
 };

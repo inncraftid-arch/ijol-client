@@ -8,6 +8,8 @@ type ClientEnv = {
   uploadErrorLogsTable: string;
   swapRequestsTable: string;
   awsUploadFunction: string;
+  adminNotificationFunction: string;
+  adminEmailNotificationsEnabled: boolean;
   awsUploadFolderPrefix: string;
 };
 
@@ -26,6 +28,11 @@ export const clientEnv: ClientEnv = {
   uploadErrorLogsTable: getEnvValue('VITE_SUPABASE_UPLOAD_ERROR_LOGS_TABLE') || 'upload_error_logs',
   swapRequestsTable: getEnvValue('VITE_SUPABASE_SWAP_REQUESTS_TABLE') || 'swap_requests',
   awsUploadFunction: getEnvValue('VITE_SUPABASE_AWS_UPLOAD_FUNCTION') || 'create-s3-upload-url',
+  adminNotificationFunction:
+    getEnvValue('VITE_SUPABASE_ADMIN_NOTIFICATION_FUNCTION') || 'send-admin-notification',
+  adminEmailNotificationsEnabled:
+    (getEnvValue('VITE_ADMIN_EMAIL_NOTIFICATIONS_ENABLED') || String(import.meta.env.PROD)) ===
+    'true',
   awsUploadFolderPrefix:
     getEnvValue('VITE_AWS_UPLOAD_FOLDER_PREFIX') || (import.meta.env.PROD ? 'ijol-prod' : 'ijol-dev'),
 };

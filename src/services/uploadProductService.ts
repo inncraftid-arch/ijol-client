@@ -1,4 +1,5 @@
 import { clientEnv } from '../config/env';
+import { notifyAdmin } from './adminNotificationService';
 import { uploadFileDirectToAws, type AwsUploadResult } from './awsUploadService';
 import { supabaseRestRequest } from './clientSupabase';
 import { logUploadProductError } from './uploadErrorLogService';
@@ -171,6 +172,8 @@ export const submitUploadProduct = async (formData: UploadProductFormData) => {
           : Promise.resolve([]),
       ])
     );
+
+    void notifyAdmin('item_uploaded');
 
     return item;
   } catch (error) {

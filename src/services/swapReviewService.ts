@@ -1,5 +1,6 @@
 import { sanitizePhoneNumberInput, validatePhoneNumberInput } from './usersService';
 import { supabaseRpcRequest } from './clientSupabase';
+import { notifyAdmin } from './adminNotificationService';
 
 export type SwapReviewItem = {
   id: string;
@@ -163,6 +164,8 @@ export const acceptSwapReviewOffer = async ({
     p_swap_request_id: requestId,
     p_selected_offered_item_id: selectedOfferedItemId,
   });
+
+  void notifyAdmin('swap_approved');
 };
 
 export const rejectSwapReviewOffer = async ({
